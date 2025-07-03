@@ -10,7 +10,9 @@ namespace Models.Infrastructure
 {
     public class Orchestrator
     {
-        public Database Database { get; }
+        private Database Database { get; }
+
+        private readonly EntityManager _entityManager = new();
 
         public Orchestrator(Database database) {
             Database = database;
@@ -25,7 +27,9 @@ namespace Models.Infrastructure
         {
             var customerChanged = (CustomerChanged)eventInfo;
 
-            
+            var latestCustomerChange = Database.GetLatestSubmittedCustomer(customerChanged.CustomerId);
+            _entityManager.Transition(latestCustomerChange);
+
             /* Steps:
              * 1. Lock customer - later
              * 2. Move latest submitted data to evaluation

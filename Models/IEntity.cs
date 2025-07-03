@@ -8,5 +8,6 @@ namespace Models
 {
     public interface IEntity // Marker interface
     {
+        string State { get; set; }
     }
 }

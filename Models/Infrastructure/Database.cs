@@ -14,27 +14,34 @@ namespace Models.Infrastructure
     {
         public Database()
         {
-            CustomerCollection = new List<Customer>();
+            CustomerCollection = new List<EntityLayout<Customer>>();
         }
 
-        public IList<Customer> CustomerCollection { get; private set; }
+        public IList<EntityLayout<Customer>> CustomerCollection { get; private set; }
 
         public bool TryAdd(Customer customer)
         {
             throw new NotImplementedException();
         }
 
+        internal Customer GetLatestSubmittedCustomer(string customerId)
+        {
+            var latestChange = CustomerCollection
+                .First(customer => customer.Id.Equals(customerId))
+                .WorkingCopy.Pop();
 
+            return latestChange;
+        }
     }
 
-    internal class EntityLayout<T> where T : IEntity
+    public class EntityLayout<T> where T : IEntity
     {
-        public string EntityName { get; private set; }
+        public string Id { get; set; }
 
         public T ClientCopy { get; set; }
 
-        public T WorkingCopy { get; set; }
+        public Stack<T> WorkingCopy { get; set; }
 
-        public T Ready { get; set; }
+        public T ReadyCopy { get; set; }
     }
 }
