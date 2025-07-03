@@ -12,11 +12,16 @@ namespace Service
     {
         private readonly EntityChangeHandler _changeHandler = new EntityChangeHandler();
 
-        public Customer AddCustomer(Customer customer, bool submit = false)
+        public CustomerClient AddCustomer(CustomerClient customerClient, bool submit = false)
         {
-            _changeHandler.Change(customer, submit);
+            _changeHandler.Change(customerClient, submit);
 
-            return customer;
+            return customerClient;
+        }
+
+        public CustomerClient GetCustomer(string customerId)
+        {
+            return default;
         }
     }
 }

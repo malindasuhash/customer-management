@@ -8,8 +8,12 @@ namespace Models
 {
     internal interface IVersionable
     {
-        int DraftVersion { get; }
         int SubmittedVersion { get; } 
+    }
+
+    internal interface IClientVersion
+    {
+        int DraftVersion { get; }
         int LastSubmittedVersion { get; }
     }
 }

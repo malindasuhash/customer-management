@@ -10,32 +10,43 @@ namespace Service
 {
     internal class EntityChangeHandler
     {
-        internal void Change(Customer customer, bool submit)
+        internal void Change(CustomerClient customerClient, bool submit)
         {
-            // If customer is new then assign an identifier (CustomerId).
-            Intialise(customer);
+            Update(customerClient);
 
-            // Client is submitting
+            // Submit for processing 
             if (submit)
             {
-                // This is a deep clone
-                var entity = (Customer)customer.Clone();
+                // Deep clone into an entity
+                var entitytoSubmit = (Customer)customerClient.Clone();
+                entitytoSubmit.State = EntityState.Submitted;
 
                 // Latest draft is marked for submission
-                entity.SubmittedVersion = entity.DraftVersion; 
+                // We'll take the latest draft from client
+                customerClient.LastSubmittedVersion = customerClient.DraftVersion; 
+                
+                entitytoSubmit.SubmittedVersion = customerClient.LastSubmittedVersion;
 
-                // LastSubmittedVersion in the Draft is set
-                customer.LastSubmittedVersion = entity.SubmittedVersion;
+                EventAggregator.Log("Entity Cloned, ready for submission \n Draft: [{0}], \n Submitted: [{1}]", customerClient, entitytoSubmit);
             }
         }
 
-        private static void Intialise(Customer customer)
+        private static void Update(CustomerClient customer)
         {
-            if (customer.Id is not null) return;
+            if (customer.Id is not null) { 
+                customer.DraftVersion++;
 
-            customer.Id = Guid.NewGuid().ToString();
-            customer.State = EntityState.Draft;
-            customer.DraftVersion.Increment();
+                EventAggregator.Log("Entity Id {0} updated, new Draft version: {1}", 
+                    customer.Id, 
+                    customer.DraftVersion);
+            } else
+            {
+                customer.Id = Guid.NewGuid().ToString();
+                customer.State = EntityState.Draft;
+                customer.DraftVersion = 1;
+
+                EventAggregator.Log("New Entity Id {0} is set", customer.Id);
+            }
         }
     }
 }

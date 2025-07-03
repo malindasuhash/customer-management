@@ -1,4 +1,5 @@
 ﻿using Models;
+using Models.Infrastructure;
 using Service;
 using System;
 using System.Collections.Generic;
@@ -17,15 +18,26 @@ namespace Client
             _service = new CustomerManager();
         }
 
+        // POST /customer
         public void AddCustomer(string emailAddress)
         {
-            var customer = new Customer
+            var customerClient = new CustomerClient
             {
                 EmailAddress = emailAddress
             };
 
-            // POST /customer
-            _service.AddCustomer(customer); 
+            EventAggregator.Log("Adding a new customer");
+
+            
+            _service.AddCustomer(customerClient, true); 
+        }
+
+        // GET /customer/{customerId}
+        public CustomerClient GetCustomer(string customerId)
+        {
+            var customer = _service.GetCustomer(customerId);
+
+            return customer;
         }
 
     }
