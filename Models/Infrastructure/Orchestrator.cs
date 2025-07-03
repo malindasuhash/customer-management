@@ -1,4 +1,6 @@
-﻿using System;
+﻿using Models.Infrastructure.Events;
+using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -8,5 +10,28 @@ namespace Models.Infrastructure
 {
     public class Orchestrator
     {
+        public Database Database { get; }
+
+        public Orchestrator(Database database) {
+            Database = database;
+        }
+
+        public void QueueChangeForProcessing(IEventInfo eventInfo)
+        {
+
+        }
+
+        public void OnCustomerChanged(IEventInfo eventInfo)
+        {
+            var customerChanged = (CustomerChanged)eventInfo;
+
+            
+            /* Steps:
+             * 1. Lock customer - later
+             * 2. Move latest submitted data to evaluation
+             * 3. If latest being used then no need to create further copies
+             * 4. Trigger new workflow
+             */
+        }
     }
 }

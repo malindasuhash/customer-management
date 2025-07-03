@@ -19,7 +19,7 @@ namespace Client
         }
 
         // POST /customer
-        public void AddCustomer(string emailAddress)
+        public void AddCustomer(string emailAddress, bool submit = false)
         {
             var customerClient = new CustomerClient
             {
@@ -29,7 +29,7 @@ namespace Client
             EventAggregator.Log("Adding a new customer");
 
             
-            _service.AddCustomer(customerClient, true); 
+            _service.AddCustomer(customerClient, submit); 
         }
 
         // GET /customer/{customerId}

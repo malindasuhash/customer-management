@@ -1,8 +1,9 @@
 ﻿// See https://aka.ms/new-console-template for more information
-using Viewer;
+using EventViewer;
 
-Console.WriteLine("--> LOG Receiver <--");
-Console.BackgroundColor = ConsoleColor.DarkBlue;
+Console.WriteLine("--> EVENT Receiver <--");
+Console.BackgroundColor = ConsoleColor.DarkGray;
 
 var receiver = new Receiver();
 receiver.Receive();
+

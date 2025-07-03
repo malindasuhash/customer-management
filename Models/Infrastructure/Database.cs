@@ -23,5 +23,18 @@ namespace Models.Infrastructure
         {
             throw new NotImplementedException();
         }
+
+
+    }
+
+    internal class EntityLayout<T> where T : IEntity
+    {
+        public string EntityName { get; private set; }
+
+        public T ClientCopy { get; set; }
+
+        public T WorkingCopy { get; set; }
+
+        public T Ready { get; set; }
     }
 }

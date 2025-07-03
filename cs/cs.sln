@@ -11,6 +11,10 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Service", "..\Service\Servi
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Viewer", "Viewer\Viewer.csproj", "{45DC2C81-4E7B-43A5-BB24-F2FCB53B9425}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EventViewer", "EventViewer\EventViewer.csproj", "{53A927F3-BFC5-43B3-898E-5DA2B11B32EE}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Helpers", "Helpers", "{D228954E-F166-4516-803D-729BDDC96743}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -33,9 +37,17 @@ Global
 		{45DC2C81-4E7B-43A5-BB24-F2FCB53B9425}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{45DC2C81-4E7B-43A5-BB24-F2FCB53B9425}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{45DC2C81-4E7B-43A5-BB24-F2FCB53B9425}.Release|Any CPU.Build.0 = Release|Any CPU
+		{53A927F3-BFC5-43B3-898E-5DA2B11B32EE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{53A927F3-BFC5-43B3-898E-5DA2B11B32EE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{53A927F3-BFC5-43B3-898E-5DA2B11B32EE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{53A927F3-BFC5-43B3-898E-5DA2B11B32EE}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{45DC2C81-4E7B-43A5-BB24-F2FCB53B9425} = {D228954E-F166-4516-803D-729BDDC96743}
+		{53A927F3-BFC5-43B3-898E-5DA2B11B32EE} = {D228954E-F166-4516-803D-729BDDC96743}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {B7888815-ED7D-4AF3-B77F-F92CA30CF92A}

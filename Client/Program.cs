@@ -5,8 +5,35 @@ Console.WriteLine("--> Customer Manager Client <--");
 
 Thread.Sleep(2000);
 
+var input = new ConsoleKeyInfo();
 var app = new Application();
-app.AddCustomer("e@mail.com");
+var random = new Random(100);
+
+do
+{
+    Console.WriteLine("OPTIONS:\n");
+
+    Console.WriteLine("1. Add new customer");
+    Console.WriteLine("2. Add new customer and submit");
+    Console.WriteLine("3. Update last customer");
+    Console.WriteLine("4. Submit last customer");
+    Console.WriteLine("0. Exit");
+
+    input = Console.ReadKey();
+
+    switch (input.Key)
+    {
+        case ConsoleKey.D1:
+            app.AddCustomer(random.Next(1,10).ToString() + "@mail.com");
+            break;
+        case ConsoleKey.D2:
+            app.AddCustomer(random.Next(11, 20).ToString() + "@mail.com", true);
+            break;
+    }
+
+    Console.Clear();
+
+} while (input.Key != ConsoleKey.D0);
 
 Console.WriteLine("Enter to terminate");
 Console.ReadLine();

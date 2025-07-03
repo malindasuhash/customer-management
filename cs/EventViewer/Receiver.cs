@@ -2,10 +2,11 @@
 using System.Collections.Generic;
 using System.IO.Pipes;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Viewer
+namespace EventViewer
 {
     internal class Receiver
     {
@@ -13,9 +14,9 @@ namespace Viewer
         {
             int minutesToRun = 5;
 
-            Console.WriteLine("Log Receiver starting.....\n\n");
+            Console.WriteLine("Event Receiver starting.....\n\n");
 
-            var server = new NamedPipeServerStream("CSLogPipe");
+            var server = new NamedPipeServerStream("CSEventPipe");
 
             var serverInfo = server.WaitForConnectionAsync();
             serverInfo.ContinueWith((task) =>
@@ -26,7 +27,9 @@ namespace Viewer
                 using var reader = new StreamReader(server);
                 while ((DateTime.Now - startTime).TotalMinutes < minutesToRun)
                 {
+                    Console.WriteLine(string.Format("----------{0}----------", DateTime.Now.ToString("HH:mm:ss:ff")));
                     Console.WriteLine(reader.ReadLine());
+                    Console.WriteLine("----------");
                 }
 
             });
@@ -36,5 +39,3 @@ namespace Viewer
         }
     }
 }
-
-
