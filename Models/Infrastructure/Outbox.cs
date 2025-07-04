@@ -11,9 +11,18 @@ namespace Models.Infrastructure
     {
         public void EntityChanged(ISubmittedEntity submittedEntity)
         {
+            // Write to database
+            Database.Instance.
+
+            // Publish event
             EventAggregator.Publish(new CustomerChanged(submittedEntity.Id, submittedEntity.SubmittedVersion));
 
-            // Write to database
+         
+        }
+
+        public void Update(IClientEntity clientEntity)
+        {
+            throw new NotImplementedException();
         }
     }
 }

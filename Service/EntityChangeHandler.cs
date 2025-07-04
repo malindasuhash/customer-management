@@ -21,9 +21,10 @@ namespace Service
             // Submit for processing 
             if (submit)
             {
-                EventAggregator.Log("Processing submission, please wait....(simulating copy)"); Thread.Sleep(4000);
+                EventAggregator.Log("Processing submission, please wait....(simulating copy)"); Thread.Sleep(2000);
 
-                // Deep clone into an entity
+                // TODO: I think I need to deep clone entire object hirarchy 
+                // and then find out what has changed. Thereafter raise the event.
                 var entitytoSubmit = (ISubmittedEntity)clientEntity.Clone();
                 _entityManager.Transition(entitytoSubmit);
 
@@ -36,6 +37,10 @@ namespace Service
                 EventAggregator.Log("Entity Cloned, ready for submission \n Draft: [{0}], \n Submitted: [{1}]", clientEntity, entitytoSubmit);
 
                 _outbox.EntityChanged(entitytoSubmit);
+            }
+            else
+            {
+                _outbox.Update(clientEntity);
             }
         }
 
