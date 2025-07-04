@@ -46,15 +46,6 @@ namespace Models.Infrastructure
             instance.GetType().InvokeMember("Run", BindingFlags.InvokeMethod, null, instance, null);
         }
 
-        public static void Publish(IWorkflowEvent trigger)
-        {
-            var workflowType =_workflowMappings.GetValueOrDefault(trigger.GetType());
-
-            // Creates a new workflow dynamically
-            var instance = Activator.CreateInstance(workflowType);
-            instance.GetType().InvokeMember("Run", BindingFlags.InvokeMethod, null, instance, null);
-        }
-
         public static void Log(string message, params object[] values)
         {
             _logWriter ??= new StreamWriter(_logClient);
