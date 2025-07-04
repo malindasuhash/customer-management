@@ -26,15 +26,8 @@ namespace Models.Infrastructure
             _entityManager.Transition(latestCustomerChange);
             Database.Instance.MarkAsWorkingCopy(latestCustomerChange);
 
-            // TODO: Trigger workflow
-            EventAggregator.Publish(new CustomerWorkflowEvent(latestCustomerChange.Id, latestCustomerChange.SubmittedVersion));
-
-            /* Steps:
-             * 1. Lock customer - later
-             * 2. Move latest submitted data to evaluation
-             * 3. If latest being used then no need to create further copies
-             * 4. Trigger new workflow
-             */
+            // Trigger workflow
+            EventAggregator.Publish(eventInfo);
         }
     }
 }

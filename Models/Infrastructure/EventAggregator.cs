@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.IO.Pipes;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -35,14 +36,23 @@ namespace Models.Infrastructure
             _eventWriter ??= new StreamWriter(_eventClient);
             _eventWriter.WriteLine(eventInfo);
             _eventWriter.AutoFlush = true;
+
+            var workflowType = _workflowMappings.GetValueOrDefault(eventInfo.GetType());
+
+            if (workflowType is null) return;
+
+            // Creates a new workflow dynamically
+            var instance = Activator.CreateInstance(workflowType);
+            instance.GetType().InvokeMember("Run", BindingFlags.InvokeMethod, null, instance, null);
         }
 
         public static void Publish(IWorkflowEvent trigger)
         {
             var workflowType =_workflowMappings.GetValueOrDefault(trigger.GetType());
 
+            // Creates a new workflow dynamically
             var instance = Activator.CreateInstance(workflowType);
-            instance.GetType().InvokeMember("Run", System.Reflection.BindingFlags.Instance, null, null, null);
+            instance.GetType().InvokeMember("Run", BindingFlags.InvokeMethod, null, instance, null);
         }
 
         public static void Log(string message, params object[] values)
@@ -56,7 +66,7 @@ namespace Models.Infrastructure
         {
             _workflowMappings = new Dictionary<Type, Type>()
             {
-                {  typeof(CustomerWorkflowEvent), typeof(CustomerWorkflow) }
+                {  typeof(CustomerChanged), typeof(CustomerWorkflow) }
             };
 
         }
