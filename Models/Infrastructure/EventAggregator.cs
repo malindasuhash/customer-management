@@ -31,6 +31,11 @@ namespace Models.Infrastructure
             _eventWriter.AutoFlush = true;
         }
 
+        public static void Publish(IWorkflowEvent trigger)
+        {
+
+        }
+
         public static void Log(string message, params object[] values)
         {
             _logWriter ??= new StreamWriter(_logClient);

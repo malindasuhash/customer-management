@@ -12,6 +12,7 @@ namespace Service
     internal class EntityChangeHandler
     {
         private readonly Outbox _outbox = new();
+        private readonly EntityManager _entityManager = new();
 
         internal void Change(CustomerClient customerClient, bool submit)
         {
@@ -24,7 +25,7 @@ namespace Service
 
                 // Deep clone into an entity
                 var entitytoSubmit = (Customer)customerClient.Clone();
-                entitytoSubmit.State = EntityState.Submitted;
+                _entityManager.Transition(entitytoSubmit);
 
                 // Latest draft is marked for submission
                 // We'll take the latest draft from client
@@ -38,7 +39,7 @@ namespace Service
             }
         }
 
-        private static void Update(CustomerClient customer)
+        private void Update(CustomerClient customer)
         {
             if (customer.Id is not null) { 
                 customer.DraftVersion++;
@@ -50,8 +51,8 @@ namespace Service
             } else
             {
                 customer.Id = Guid.NewGuid().ToString();
-                customer.State = EntityState.Draft;
                 customer.DraftVersion = 1;
+                _entityManager.Transition(customer);
 
                 EventAggregator.Log("New Entity Id {0} is set, State:'{1}'", customer.Id, customer.State);
             }

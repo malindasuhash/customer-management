@@ -10,13 +10,7 @@ namespace Models.Infrastructure
 {
     public class Orchestrator
     {
-        private Database Database { get; }
-
         private readonly EntityManager _entityManager = new();
-
-        public Orchestrator(Database database) {
-            Database = database;
-        }
 
         public void QueueChangeForProcessing(IEventInfo eventInfo)
         {
@@ -27,8 +21,13 @@ namespace Models.Infrastructure
         {
             var customerChanged = (CustomerChanged)eventInfo;
 
-            var latestCustomerChange = Database.GetLatestSubmittedCustomer(customerChanged.CustomerId);
+            // TODO: I may need to change it to get the lastest submitted entities
+            var latestCustomerChange = Database.Instance.GetLatestSubmittedCustomer(customerChanged.CustomerId);
             _entityManager.Transition(latestCustomerChange);
+            Database.Instance.MarkAsWorkingCopy(latestCustomerChange);
+
+            // TODO: Trigger workflow
+            EventAggregator.Publish(new CustomerWorkflowEvent(latestCustomerChange.Id, latestCustomerChange.SubmittedVersion));
 
             /* Steps:
              * 1. Lock customer - later

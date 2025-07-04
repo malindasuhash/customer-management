@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Models.Infrastructure
 {
-    internal class EntityManager
+    public class EntityManager
     {
         public void Transition(IEntity entity)
         {
@@ -15,16 +15,17 @@ namespace Models.Infrastructure
 
         private string GetNextState(string currentState)
         {
-            switch (currentState)
+            if (currentState == null)
             {
-                case EntityState.Draft:
-                    return EntityState.Submitted;
-
-                case EntityState.Submitted:
-                    return EntityState.Evaluating;
+                return EntityState.Draft;
             }
 
-            return EntityState.Failed;
+            return currentState switch
+            {
+                EntityState.Draft => EntityState.Submitted,
+                EntityState.Submitted => EntityState.Evaluating,
+                _ => EntityState.Failed,
+            };
         }
     }
 }

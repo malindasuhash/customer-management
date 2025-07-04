@@ -12,7 +12,9 @@ namespace Models.Infrastructure
     /// </summary>
     public class Database
     {
-        public Database()
+        public static Database Instance = new();
+
+        private Database()
         {
             CustomerCollection = new List<EntityLayout<Customer>>();
         }
@@ -28,9 +30,14 @@ namespace Models.Infrastructure
         {
             var latestChange = CustomerCollection
                 .First(customer => customer.Id.Equals(customerId))
-                .WorkingCopy.Pop();
+                .LastestSubmittedCopy;
 
             return latestChange;
+        }
+
+        internal void MarkAsWorkingCopy(Customer latestCustomerChange)
+        {
+            throw new NotImplementedException();
         }
     }
 
@@ -40,7 +47,9 @@ namespace Models.Infrastructure
 
         public T ClientCopy { get; set; }
 
-        public Stack<T> WorkingCopy { get; set; }
+        public T LastestSubmittedCopy { get; set; }
+
+        public T WorkingCopy { get; set; }
 
         public T ReadyCopy { get; set; }
     }

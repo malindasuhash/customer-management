@@ -10,7 +10,7 @@ namespace Service
 {
     public class CustomerManager
     {
-        private readonly EntityChangeHandler _changeHandler = new EntityChangeHandler();
+        private readonly EntityChangeHandler _changeHandler = new();
 
         public CustomerClient AddCustomer(CustomerClient customerClient, bool submit = false)
         {
