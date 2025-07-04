@@ -8,5 +8,6 @@ namespace Models.Infrastructure
 {
     public interface IWorkflow
     {
+        void Run();
     }
 }
