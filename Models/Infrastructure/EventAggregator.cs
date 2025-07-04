@@ -37,13 +37,17 @@ namespace Models.Infrastructure
             _eventWriter.WriteLine(eventInfo);
             _eventWriter.AutoFlush = true;
 
+            // Find out whether there is a workflow mapping
             var workflowType = _workflowMappings.GetValueOrDefault(eventInfo.GetType());
 
             if (workflowType is null) return;
 
-            // Creates a new workflow dynamically
-            var instance = Activator.CreateInstance(workflowType);
-            instance.GetType().InvokeMember("Run", BindingFlags.InvokeMethod, null, instance, null);
+            Task.Run(() =>
+            {
+                // Creates a new workflow dynamically
+                var instance = Activator.CreateInstance(workflowType);
+                instance.GetType().InvokeMember("Run", BindingFlags.InvokeMethod, null, instance, new object[] { eventInfo });
+            });
         }
 
         public static void Log(string message, params object[] values)

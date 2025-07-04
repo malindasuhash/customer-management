@@ -1,4 +1,5 @@
 ﻿using Models.Infrastructure;
+using Models.Infrastructure.Events;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -9,11 +10,13 @@ namespace Models.Workflows
 {
     internal class CustomerWorkflow : IWorkflow
     {
-        public void Run()
+        public void Run(IEventInfo eventInfo)
         {
-            EventAggregator.Log("START: Customer workflow");
+            var customerEvent = (CustomerChanged)eventInfo;
 
-            EventAggregator.Log("END: Customer workflow");
+            EventAggregator.Log("START: Customer workflow - Customer Id:'{0}', Version:{1}", customerEvent.CustomerId, customerEvent.Version);
+
+            EventAggregator.Log("END: Customer workflow - Customer Id:'{0}', Version: {1}", customerEvent.CustomerId, customerEvent.Version);
         }
     }
 }

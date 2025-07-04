@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Models.Infrastructure.Events;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -8,6 +9,6 @@ namespace Models.Infrastructure
 {
     public interface IWorkflow
     {
-        void Run();
+        void Run(IEventInfo eventInfo);
     }
 }
