@@ -7,6 +7,18 @@ using System.Threading.Tasks;
 
 namespace Models
 {
+    public interface ISubmittedEntity : IEntity
+    {
+        int SubmittedVersion { get; set; }
+    }
+
+    public interface IClientEntity : IEntity, ICloneable
+    {
+        public int DraftVersion { get; set; }
+
+        public int LastSubmittedVersion { get; set; }
+    }
+
     public class CustomerBase : IEntity
     {
         public string Id { get; set; }
@@ -14,7 +26,7 @@ namespace Models
         public string State { get; set; }
     }
 
-    public class Customer : CustomerBase, IEntity, IVersionable
+    public class Customer : CustomerBase, ISubmittedEntity, IVersionable
     {
         public int SubmittedVersion { get; set; }
 
@@ -23,12 +35,12 @@ namespace Models
             return string.Format("Id:'{0}', " +
                 "EmailAddress:'{1}', " +
                 "State:'{2}', " +
-                "SubmittedVersion:'{3}'", 
+                "SubmittedVersion:'{3}'",
                 Id, EmailAddress, State, SubmittedVersion);
         }
     }
 
-    public class CustomerClient : CustomerBase, IEntity, ICloneable, IClientVersion
+    public class CustomerClient : CustomerBase, IClientEntity, IClientVersion
     {
         public int DraftVersion { get; set; }
 

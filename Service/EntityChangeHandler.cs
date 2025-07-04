@@ -14,9 +14,9 @@ namespace Service
         private readonly Outbox _outbox = new();
         private readonly EntityManager _entityManager = new();
 
-        internal void Change(CustomerClient customerClient, bool submit)
+        internal void Change(IClientEntity clientEntity, bool submit)
         {
-            Update(customerClient);
+            Update(clientEntity);
 
             // Submit for processing 
             if (submit)
@@ -24,37 +24,39 @@ namespace Service
                 EventAggregator.Log("Processing submission, please wait....(simulating copy)"); Thread.Sleep(4000);
 
                 // Deep clone into an entity
-                var entitytoSubmit = (Customer)customerClient.Clone();
+                var entitytoSubmit = (ISubmittedEntity)clientEntity.Clone();
                 _entityManager.Transition(entitytoSubmit);
 
                 // Latest draft is marked for submission
                 // We'll take the latest draft from client
-                customerClient.LastSubmittedVersion = customerClient.DraftVersion; 
+                clientEntity.LastSubmittedVersion = clientEntity.DraftVersion; 
                 
-                entitytoSubmit.SubmittedVersion = customerClient.LastSubmittedVersion;
+                entitytoSubmit.SubmittedVersion = clientEntity.LastSubmittedVersion;
 
-                EventAggregator.Log("Entity Cloned, ready for submission \n Draft: [{0}], \n Submitted: [{1}]", customerClient, entitytoSubmit);
+                EventAggregator.Log("Entity Cloned, ready for submission \n Draft: [{0}], \n Submitted: [{1}]", clientEntity, entitytoSubmit);
 
-                _outbox.CustomerChanged(entitytoSubmit);
+                _outbox.EntityChanged(entitytoSubmit);
             }
         }
 
-        private void Update(CustomerClient customer)
+        private void Update(IClientEntity clientEntity)
         {
-            if (customer.Id is not null) { 
-                customer.DraftVersion++;
+            if (clientEntity.Id is not null) { 
+
+                // Incrementing the version as there has been a change
+                clientEntity.DraftVersion++;
 
                 EventAggregator.Log("Entity Id {0} updated, State:'{1}' new Draft version:'{2}'", 
-                    customer.Id, 
-                    customer.State,
-                    customer.DraftVersion);
+                    clientEntity.Id, 
+                    clientEntity.State,
+                    clientEntity.DraftVersion);
             } else
             {
-                customer.Id = Guid.NewGuid().ToString();
-                customer.DraftVersion = 1;
-                _entityManager.Transition(customer);
+                clientEntity.Id = Guid.NewGuid().ToString();
+                clientEntity.DraftVersion = 1;
+                _entityManager.Transition(clientEntity);
 
-                EventAggregator.Log("New Entity Id {0} is set, State:'{1}'", customer.Id, customer.State);
+                EventAggregator.Log("New Entity Id {0} is set, State:'{1}'", clientEntity.Id, clientEntity.State);
             }
         }
     }

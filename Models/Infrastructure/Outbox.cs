@@ -9,9 +9,9 @@ namespace Models.Infrastructure
 {
     public class Outbox
     {
-        public void CustomerChanged(Customer customer)
+        public void EntityChanged(ISubmittedEntity submittedEntity)
         {
-            EventAggregator.Publish(new CustomerChanged(customer.Id, customer.SubmittedVersion));
+            EventAggregator.Publish(new CustomerChanged(submittedEntity.Id, submittedEntity.SubmittedVersion));
 
             // Write to database
         }
