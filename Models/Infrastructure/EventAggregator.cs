@@ -61,7 +61,8 @@ namespace Models.Infrastructure
         {
             _workflowMappings = new Dictionary<Type, Type>()
             {
-                {  typeof(CustomerChanged), typeof(CustomerEvaluationWorkflow) }
+                {  typeof(CustomerChanged), typeof(CustomerEvaluationWorkflow) },
+                {  typeof(CustomerEvaluationCompleteEvent), typeof(CustomerApplyWorkflow) }
             };
 
         }

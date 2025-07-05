@@ -18,7 +18,7 @@ do
     Console.WriteLine("3. Update last customer");
     Console.WriteLine("4. Submit last customer");
     Console.WriteLine();
-    Console.WriteLine("A. Display database");
+    Console.WriteLine("A. Display data");
 
     Console.WriteLine("0. Exit");
 

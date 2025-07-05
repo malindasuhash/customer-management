@@ -69,6 +69,13 @@ namespace Models.Infrastructure
             return latestChange;
         }
 
+        internal Customer GetLatestWorkingCopy(string id)
+        {
+            var workingCopy = CustomerCollection.First(customer => customer.Id.Equals(id)).WorkingCopy;
+
+            return workingCopy;
+        }
+
         internal void MarkAsWorkingCopy(Customer latestCustomerChange)
         {
             var name = latestCustomerChange.GetType().Name;
@@ -80,6 +87,11 @@ namespace Models.Infrastructure
                     layout.MoveFromSubmittedCopyToWorkingCopy(latestCustomerChange);
                     break;
             }
+        }
+
+        internal void UpdateWorkingCopy(object latestCustomerChange)
+        {
+            throw new NotImplementedException();
         }
     }
 

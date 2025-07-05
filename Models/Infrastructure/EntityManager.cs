@@ -13,7 +13,7 @@ namespace Models.Infrastructure
             entity.State = GetNextState(entity.State);
         }
 
-        private string GetNextState(string currentState)
+        private string GetNextState(string currentState, bool success = true)
         {
             if (currentState == null)
             {
@@ -24,6 +24,7 @@ namespace Models.Infrastructure
             {
                 EntityState.Draft => EntityState.Submitted,
                 EntityState.Submitted => EntityState.Evaluating,
+                EntityState.Evaluating => EntityState.Applying,
                 _ => EntityState.Failed,
             };
         }

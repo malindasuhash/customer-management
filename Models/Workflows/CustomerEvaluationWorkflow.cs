@@ -16,12 +16,22 @@ namespace Models.Workflows
 
             EventAggregator.Log("START: CustomerEvaluationWorkflow - Customer Id:'{0}', Version:{1}", customerEvent.CustomerId, customerEvent.Version);
 
-            EventAggregator.Log("CustomerEvaluationWorkflow - Notifying Identity & Authorisation system"); Thread.Sleep(3000);
-
-            // TODO: Update state in entity.
             var workingCopy = Database.Instance.CustomerCollection.First(entry => entry.Id.Equals(customerEvent.CustomerId)).WorkingCopy;
 
-            // TODO: Notify Orchestrator to update entity state.
+            if (workingCopy.EmailAddress.Contains("bad", StringComparison.InvariantCultureIgnoreCase))
+            {
+                EventAggregator.Log("CustomerEvaluationWorkflow - bad email:'{0}' for Customer:'{1}'", workingCopy.EmailAddress, workingCopy.Id); Thread.Sleep(1000);
+                
+                // Notify Orchestrator.
+                EventAggregator.Publish(new CustomerEvaluationCompleteEvent(customerEvent.CustomerId, customerEvent.Version, false));
+
+                return;
+            }
+
+            EventAggregator.Log("CustomerEvaluationWorkflow - valid email:'{0}' for Customer:'{1}'", workingCopy.EmailAddress, workingCopy.Id); Thread.Sleep(1000);
+
+            // Notify Orchestrator.
+            Orchestrator.Instance.OnNotify(Result.EvaluationSuccess(customerEvent.CustomerId, customerEvent.Version));
 
             EventAggregator.Log("END: CustomerEvaluationWorkflow - Customer Id:'{0}', Version: {1}", customerEvent.CustomerId, customerEvent.Version);
         }

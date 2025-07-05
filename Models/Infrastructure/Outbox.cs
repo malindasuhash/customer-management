@@ -1,7 +1,9 @@
 ﻿using Models.Infrastructure.Events;
+using Models.Workflows;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -19,13 +21,20 @@ namespace Models.Infrastructure
             Database.Instance.AddToSubmittedCopy(submittedEntity);
         }
 
-        public void EntitySubmitted(ISubmittedEntity submittedEntity)
+        internal void ReadyForEvalution(Customer latestCustomerChange)
         {
-            // Write to database
-            Database.Instance.AddToSubmittedCopy(submittedEntity);
+            Database.Instance.MarkAsWorkingCopy(latestCustomerChange);
 
-            // Notify Orchestrator
-            Orchestrator.Instance.OnEntityUpdated(submittedEntity.GetChangedEvent());
+            // Trigger event
+            EventAggregator.Publish(latestCustomerChange.GetChangedEvent());
+        }
+
+        internal void ReadyToApply(Customer workingCopy)
+        {
+            // Update database
+
+            // Trigger event
+            EventAggregator.Publish(new CustomerEvaluationCompleteEvent(workingCopy.Id, workingCopy.SubmittedVersion, true));
         }
     }
 }

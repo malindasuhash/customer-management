@@ -7,5 +7,7 @@ public static class EntityState
 
     public const string Evaluating = "EVALUATING";
 
+    public const string Applying = "APPLYING";
+
     public const string Failed = "FAILED";
 }
