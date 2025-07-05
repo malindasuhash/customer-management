@@ -38,6 +38,7 @@ namespace Models.Infrastructure
 
         public List<IClientEntity> GetDraftEntitiesFor(string id)
         {
+            // TODO: Build up entire object hirarchy
             return CustomerCollection
                 .Where(client => client.Id == id && client.ClientCopy.State.Equals(EntityState.Draft))
                 .Select(a => (IClientEntity)a.ClientCopy)

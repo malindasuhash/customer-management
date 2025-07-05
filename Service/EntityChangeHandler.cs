@@ -53,7 +53,8 @@ namespace Service
 
                     EventAggregator.Log("Entity Cloned, ready for submission \n Draft: [{0}], \n Submitted: [{1}]", draftEntity, entitytoSubmit);
 
-                    // Perhaps an update to reflect new LastSubmittedVersion in client copy
+                    // Perhaps an update to reflect new LastSubmittedVersion in client copy in case of a 
+                    // proper database implementation.
 
                     // Copies to submitted and raises the change event
                     _outbox.EntityChanged(entitytoSubmit);
