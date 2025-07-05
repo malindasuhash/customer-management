@@ -121,12 +121,35 @@ namespace Models.Infrastructure
     {
         public string Id { get; set; }
 
+        /// <summary>
+        /// Client is free to update or change this entity version.
+        /// As changes are made, the "DraftVersion" increments.
+        /// </summary>
         public U ClientCopy { get; set; }
 
+        /// <summary>
+        /// This is the entity that the client has submitted. It also also
+        /// the latest "Draft" version. Once an entity is copied from 
+        /// ClientCopy to LatestSubmittedCopy, then LastSubmittedVersion property
+        /// in the ClientCopy is updated. E.g. DraftVersion=3, LastSubmittedVersion=2
+        /// which means changes LatestSubmittedCopy contains upto DraftVersion 2.
+        /// </summary>
         public T? LastestSubmittedCopy { get; set; }
 
+        /// <summary>
+        /// Once Orchestrator is ready to process the LatestSubmittedVersion, then
+        /// it is moved from LatestSubmittedCopy into WorkingCopy. Whilst an entity
+        /// is in WorkingCopy, its State may change. For example, State may
+        /// change to Evaluating -> Applying etc. 
+        /// </summary>
         public T? WorkingCopy { get; set; }
 
+        /// <summary>
+        /// Once a workflow has run to end (success or not), then the entity will
+        /// move into ReadyCopy. Having an entity in ReadyCopy does not mean
+        /// it is ready to be used. Client must consider the State to determine
+        /// whether it is ready to be consumed. 
+        /// </summary>
         public T? ReadyCopy { get; set; }
 
         public void MoveFromSubmittedCopyToWorkingCopy(IEntity entity)
