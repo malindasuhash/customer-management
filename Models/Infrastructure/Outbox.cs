@@ -11,9 +11,14 @@ namespace Models.Infrastructure
 {
     public class Outbox
     {
-        public void AsClientCopy(IClientEntity clientEntity)
+        public void AsNewClientCopy(IClientEntity clientEntity)
         {
             Database.Instance.AddToClientCopy(clientEntity);
+        }
+
+        public void AsUpdateClientCopy(IClientEntity clientEntity)
+        {
+            Database.Instance.UpdateClientCopy(clientEntity);
         }
 
         public void AsSubmittedCopy(ISubmittedEntity submittedEntity)
@@ -21,7 +26,7 @@ namespace Models.Infrastructure
             Database.Instance.AddToSubmittedCopy(submittedEntity);
         }
 
-        internal void ReadyForEvalution(Customer latestCustomerChange)
+        internal void Evaluate(Customer latestCustomerChange)
         {
             Database.Instance.MarkAsWorkingCopy(latestCustomerChange);
 
@@ -29,12 +34,19 @@ namespace Models.Infrastructure
             EventAggregator.Publish(latestCustomerChange.GetChangedEvent());
         }
 
-        internal void ReadyToApply(Customer workingCopy)
+        internal void Apply(Customer workingCopy)
         {
-            // Update database
+            // Update state
 
             // Trigger event
             EventAggregator.Publish(new CustomerEvaluationCompleteEvent(workingCopy.Id, workingCopy.SubmittedVersion, true));
+        }
+
+        internal void Ready(Customer workingCopy)
+        {
+            Database.Instance.MarkAsReady(workingCopy);
+
+            EventAggregator.Publish(new CustomerReady(workingCopy.Id, workingCopy.SubmittedVersion));
         }
     }
 }

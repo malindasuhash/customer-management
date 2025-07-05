@@ -38,6 +38,8 @@ namespace Models.Workflows
     internal enum NextAction
     {
         None,
-        Apply
+        Apply,
+        RequireInput,
+        Failed
     }
 }

@@ -16,15 +16,12 @@ namespace Service
 
         internal void Change(IClientEntity clientEntity, bool submit)
         {
-            Update(clientEntity);
-
-            // Store in database
-            _outbox.AsClientCopy(clientEntity);
+            UpdateClientCopy(clientEntity);                     
 
             // Submit for processing 
             if (submit)
             {
-                EventAggregator.Log("Processing submission, please wait....(simulating copy)"); // Thread.Sleep(2000);
+                EventAggregator.Log("Processing submission");
 
                 // TODO: I think I need to deep clone entire object hirarchy 
                 var draftEntities = Database.Instance.GetDraftEntitiesFor(clientEntity.Id); // Customer is special. 
@@ -47,7 +44,6 @@ namespace Service
 
                     // Latest draft is marked for submission
                     draftEntity.LastSubmittedVersion = draftEntity.DraftVersion;
-
                     entitytoSubmit.SubmittedVersion = draftEntity.LastSubmittedVersion;
                     
                     // Perhaps an update to reflect new LastSubmittedVersion in client copy in case of a 
@@ -63,7 +59,7 @@ namespace Service
             }
         }
 
-        private void Update(IClientEntity clientEntity)
+        private void UpdateClientCopy(IClientEntity clientEntity)
         {
             if (clientEntity.Id is not null)
             {
@@ -74,12 +70,18 @@ namespace Service
                     clientEntity.Id,
                     clientEntity.State,
                     clientEntity.DraftVersion);
+
+                // Update in database
+                _outbox.AsUpdateClientCopy(clientEntity);
             }
             else
             {
                 clientEntity.Id = Guid.NewGuid().ToString();
                 clientEntity.DraftVersion = 1;
                 _entityManager.Transition(clientEntity);
+
+                // New in database
+                _outbox.AsNewClientCopy(clientEntity);
             }
         }
     }

@@ -24,6 +24,18 @@ namespace Service
             return default;
         }
 
+        public IEnumerable<CustomerClient> GetCustomers()
+        {
+            var customers = Database.Instance.CustomerCollection.Select(c => c.ClientCopy);
+            return customers;
+        }
+
+        public void UpdateCustomer(CustomerClient customer, bool submit = false)
+        {
+            _changeHandler.Change(customer, submit);
+            EventAggregator.Log("Customer updated:'{0}'", customer.ToString());
+        }
+
         public void ViewDatabase()
         {
             var customers = Database.Instance.CustomerCollection;

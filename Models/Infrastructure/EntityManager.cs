@@ -28,6 +28,7 @@ namespace Models.Infrastructure
                 EntityState.Draft => EntityState.Submitted,
                 EntityState.Submitted => EntityState.Evaluating,
                 EntityState.Evaluating => EntityState.Applying,
+                EntityState.Applying => EntityState.Ready,
                 _ => EntityState.Failed,
             };
         }

@@ -24,7 +24,7 @@ namespace Models.Infrastructure
             var latestCustomerChange = Database.Instance.GetLatestSubmittedCustomer(entitytoSubmit.Id);
             _entityManager.Transition(latestCustomerChange);
             
-            _outbox.ReadyForEvalution(latestCustomerChange);
+            _outbox.Evaluate(latestCustomerChange);
         }
 
         internal void OnNotify(Result result)
@@ -35,11 +35,15 @@ namespace Models.Infrastructure
             {
                 // TODO: Set working copy applying, then start workflow
                 _entityManager.Transition(workingCopy);
-                _outbox.ReadyToApply(workingCopy);
+                _outbox.Apply(workingCopy);
                 
-            } else
+            } 
+
+            if (result.Workflow == Workflow.Apply && result.Success)
             {
-                // TODO: Set entity as Failed
+                EventAggregator.Log("Change successfully applied for Id:'{0}'", result.Id);
+                _entityManager.Transition(workingCopy);
+                _outbox.Ready(workingCopy);
             }
         }
 

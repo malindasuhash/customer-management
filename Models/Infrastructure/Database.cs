@@ -33,6 +33,21 @@ namespace Models.Infrastructure
             EventAggregator.Log("Client Entity:'{0}' with Id:'{1}' Added", name, clientEntity.Id);
         }
 
+        public void UpdateClientCopy(IClientEntity clientEntity)
+        {
+            var name = clientEntity.GetType().Name.Replace("Client", string.Empty);
+
+            switch (name)
+            {
+                case "Customer":
+                    var layout = CustomerCollection.First(customer => customer.Id.Equals(clientEntity.Id));
+                    layout.ClientCopy = (CustomerClient)clientEntity;
+                    break;
+            }
+
+            EventAggregator.Log("Client Entity:'{0}' with Id:'{1}' Updated", name, clientEntity.Id);
+        }
+
         public List<IClientEntity> GetDraftEntitiesFor(string id)
         {
             // TODO: Build up entire object hirarchy
@@ -86,9 +101,17 @@ namespace Models.Infrastructure
             }
         }
 
-        internal void UpdateWorkingCopy(object latestCustomerChange)
+        internal void MarkAsReady(Customer workingCopy)
         {
-            throw new NotImplementedException();
+            var name = workingCopy.GetType().Name;
+
+            switch (name)
+            {
+                case "Customer":
+                    var layout = CustomerCollection.First(customer => customer.Id.Equals(workingCopy.Id));
+                    layout.MoveFromWorkingCopyToReadyCopy(workingCopy);
+                    break;
+            }
         }
     }
 
@@ -115,6 +138,12 @@ namespace Models.Infrastructure
         public void SetLatestSubmittedCopy(IEntity entity)
         {
             LastestSubmittedCopy = (T)entity;
+        }
+
+        public void MoveFromWorkingCopyToReadyCopy(IEntity entity)
+        {
+            ReadyCopy = (T)entity;
+            WorkingCopy = default;
         }
     }
 }

@@ -40,6 +40,23 @@ namespace Client
             return customer;
         }
 
+        // PUT /customer/{customerId} { emailAddress }
+        public void UpdateCustomer(int index, string newEmailAddress)
+        {
+            var customer = _service.GetCustomers().ElementAt(index);
+            customer.EmailAddress = newEmailAddress;
+
+            _service.UpdateCustomer(customer);
+        }
+
+        // PUT /customer/{customerId}
+        public void UpdateCustomer(int index)
+        {
+            var customer = _service.GetCustomers().ElementAt(index);
+
+            _service.UpdateCustomer(customer, true);
+        }
+
         public void ShowData()
         {
             _service.ViewDatabase();

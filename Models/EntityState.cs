@@ -9,5 +9,7 @@ public static class EntityState
 
     public const string Applying = "APPLYING";
 
+    public const string Ready = "READY";
+
     public const string Failed = "FAILED";
 }
