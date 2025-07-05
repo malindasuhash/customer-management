@@ -14,25 +14,18 @@ namespace Models.Infrastructure
             Database.Instance.AddToClientCopy(clientEntity);
         }
 
-        public void AsSubmittedCopy(IClientEntity draftEntity)
+        public void AsSubmittedCopy(ISubmittedEntity submittedEntity)
         {
-            throw new NotImplementedException();
+            Database.Instance.AddToSubmittedCopy(submittedEntity);
         }
 
-        public void EntityChanged(ISubmittedEntity submittedEntity)
+        public void EntitySubmitted(ISubmittedEntity submittedEntity)
         {
             // Write to database
             Database.Instance.AddToSubmittedCopy(submittedEntity);
 
-            // Publish event
-            EventAggregator.Publish(new CustomerChanged(submittedEntity.Id, submittedEntity.SubmittedVersion));
-
-         
-        }
-
-        public void Update(IClientEntity clientEntity)
-        {
-            throw new NotImplementedException();
+            // Notify Orchestrator
+            Orchestrator.Instance.OnEntityUpdated(submittedEntity.GetChangedEvent());
         }
     }
 }

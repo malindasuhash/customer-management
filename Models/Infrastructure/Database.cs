@@ -53,7 +53,7 @@ namespace Models.Infrastructure
             {
                 case "Customer":
                     var layout = CustomerCollection.First(customer => customer.Id.Equals(entitytoSubmit.Id));
-                    layout.LastestSubmittedCopy = (Customer)entitytoSubmit;
+                    layout.SetLatestSubmittedCopy(entitytoSubmit);
                     break;
             }
 
@@ -71,7 +71,15 @@ namespace Models.Infrastructure
 
         internal void MarkAsWorkingCopy(Customer latestCustomerChange)
         {
-            throw new NotImplementedException();
+            var name = latestCustomerChange.GetType().Name;
+
+            switch (name)
+            {
+                case "Customer":
+                    var layout = CustomerCollection.First(customer => customer.Id.Equals(latestCustomerChange.Id));
+                    layout.MoveFromSubmittedCopyToWorkingCopy(latestCustomerChange);
+                    break;
+            }
         }
     }
 
@@ -83,10 +91,21 @@ namespace Models.Infrastructure
 
         public U ClientCopy { get; set; }
 
-        public T LastestSubmittedCopy { get; set; }
+        public T? LastestSubmittedCopy { get; set; }
 
-        public T WorkingCopy { get; set; }
+        public T? WorkingCopy { get; set; }
 
-        public T ReadyCopy { get; set; }
+        public T? ReadyCopy { get; set; }
+
+        public void MoveFromSubmittedCopyToWorkingCopy(IEntity entity)
+        {
+            WorkingCopy = (T)entity;
+            LastestSubmittedCopy = default;
+        }
+
+        public void SetLatestSubmittedCopy(IEntity entity)
+        {
+            LastestSubmittedCopy = (T)entity;
+        }
     }
 }

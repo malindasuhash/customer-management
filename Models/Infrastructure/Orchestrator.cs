@@ -10,14 +10,13 @@ namespace Models.Infrastructure
 {
     public class Orchestrator
     {
+        public static Orchestrator Instance = new();
+
+        private Orchestrator(){ }
+
         private readonly EntityManager _entityManager = new();
 
-        public void QueueChangeForProcessing(IEventInfo eventInfo)
-        {
-
-        }
-
-        public void OnCustomerChanged(IEventInfo eventInfo)
+        public void OnEntityUpdated(IEventInfo eventInfo)
         {
             var customerChanged = (CustomerChanged)eventInfo;
 

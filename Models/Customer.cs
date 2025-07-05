@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Models.Infrastructure.Events;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection.Metadata.Ecma335;
@@ -10,6 +11,8 @@ namespace Models
     public interface ISubmittedEntity : IEntity
     {
         int SubmittedVersion { get; set; }
+
+        IEventInfo GetChangedEvent();
     }
 
     public interface IClientEntity : IEntity, ICloneable
@@ -29,6 +32,8 @@ namespace Models
     public class Customer : CustomerBase, ISubmittedEntity, IVersionable
     {
         public int SubmittedVersion { get; set; }
+
+        public IEventInfo GetChangedEvent() => new CustomerChanged(Id, SubmittedVersion);
 
         public override string ToString()
         {

@@ -19,6 +19,7 @@ namespace Models.Workflows
             EventAggregator.Log("CustomerEvaluationWorkflow - Notifying Identity & Authorisation system"); Thread.Sleep(3000);
 
             // TODO: Update state in entity.
+            var workingCopy = Database.Instance.CustomerCollection.First(entry => entry.Id.Equals(customerEvent.CustomerId)).WorkingCopy;
 
             // TODO: Notify Orchestrator to update entity state.
 

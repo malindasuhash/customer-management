@@ -40,5 +40,9 @@ namespace Client
             return customer;
         }
 
+        public void ShowData()
+        {
+            _service.ViewDatabase();
+        }
     }
 }

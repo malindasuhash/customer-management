@@ -17,6 +17,9 @@ do
     Console.WriteLine("2. Add new customer and submit");
     Console.WriteLine("3. Update last customer");
     Console.WriteLine("4. Submit last customer");
+    Console.WriteLine();
+    Console.WriteLine("A. Display database");
+
     Console.WriteLine("0. Exit");
 
     input = Console.ReadKey();
@@ -24,10 +27,14 @@ do
     switch (input.Key)
     {
         case ConsoleKey.D1:
-            app.AddCustomer(random.Next(1,10).ToString() + "@mail.com");
+            app.AddCustomer(random.Next(1, 10).ToString() + "@mail.com");
             break;
         case ConsoleKey.D2:
             app.AddCustomer(random.Next(11, 20).ToString() + "@mail.com", true);
+            break;
+
+        case ConsoleKey.A:
+            app.ShowData();
             break;
     }
 

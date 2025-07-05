@@ -31,22 +31,21 @@ namespace Service
 
                 foreach (var draftEntity in draftEntities)
                 {
+                    // Take a deep copy of latest "draft" version.
+                    var entitytoSubmit = (ISubmittedEntity)draftEntity.Clone();
+                    _entityManager.Transition(entitytoSubmit);
+
                     // In this case, entity is copied to submitted but change event is not raised.
                     if (draftEntity.DraftVersion == draftEntity.LastSubmittedVersion)
                     {
                         EventAggregator.Log("No change detected for Entity:'{0}' with Id:'{1}'", "EntityName", draftEntity.Id);
 
                         // But the entity needs to be copied to latest submitted state; but no event is raised.
-                        _outbox.AsSubmittedCopy(draftEntity);
+                        _outbox.AsSubmittedCopy(entitytoSubmit);
                         return;
                     }
 
-                    // and then find out what has changed. Thereafter raise the event.
-                    var entitytoSubmit = (ISubmittedEntity)draftEntity.Clone();
-                    _entityManager.Transition(entitytoSubmit);
-
                     // Latest draft is marked for submission
-                    // We'll take the latest draft from client
                     draftEntity.LastSubmittedVersion = draftEntity.DraftVersion;
 
                     entitytoSubmit.SubmittedVersion = draftEntity.LastSubmittedVersion;
@@ -57,12 +56,8 @@ namespace Service
                     // proper database implementation.
 
                     // Copies to submitted and raises the change event
-                    _outbox.EntityChanged(entitytoSubmit);
+                    _outbox.EntitySubmitted(entitytoSubmit);
                 }
-            }
-            else
-            {
-                _outbox.Update(clientEntity);
             }
         }
 
@@ -70,7 +65,6 @@ namespace Service
         {
             if (clientEntity.Id is not null)
             {
-
                 // Incrementing the version as there has been a change
                 clientEntity.DraftVersion++;
 
@@ -84,8 +78,6 @@ namespace Service
                 clientEntity.Id = Guid.NewGuid().ToString();
                 clientEntity.DraftVersion = 1;
                 _entityManager.Transition(clientEntity);
-
-                EventAggregator.Log("New Entity Id {0} is set, State:'{1}'", clientEntity.Id, clientEntity.State);
             }
         }
     }
