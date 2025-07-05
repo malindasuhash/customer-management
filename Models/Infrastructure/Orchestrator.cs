@@ -20,11 +20,10 @@ namespace Models.Infrastructure
 
         public void EntitySubmitted(ISubmittedEntity entitytoSubmit)
         {
+            // TODO: This is where the access to customer may need to be serialised
             var latestCustomerChange = Database.Instance.GetLatestSubmittedCustomer(entitytoSubmit.Id);
             _entityManager.Transition(latestCustomerChange);
-
-            // TODO: This is where the access for customer may need to be serialised
-
+            
             _outbox.ReadyForEvalution(latestCustomerChange);
         }
 
@@ -32,7 +31,7 @@ namespace Models.Infrastructure
         {
             var workingCopy = Database.Instance.GetLatestWorkingCopy(result.Id);
 
-            if (result.Workflow == Workflow.Evaluation && result.Success)
+            if (result.NextAction == NextAction.Apply)
             {
                 // TODO: Set working copy applying, then start workflow
                 _entityManager.Transition(workingCopy);

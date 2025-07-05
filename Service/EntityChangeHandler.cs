@@ -56,9 +56,9 @@ namespace Service
                     // Copies to submitted and raises the change event
                     _outbox.AsSubmittedCopy(entitytoSubmit);
 
-                    Orchestrator.Instance.EntitySubmitted(entitytoSubmit);
+                    EventAggregator.Log("Entity cloned & submitting, \n Draft: [{0}], \n Submitted: [{1}]", draftEntity, entitytoSubmit);
 
-                    EventAggregator.Log("Entity cloned & submitted, \n Draft: [{0}], \n Submitted: [{1}]", draftEntity, entitytoSubmit);
+                    Orchestrator.Instance.EntitySubmitted(entitytoSubmit);
                 }
             }
         }

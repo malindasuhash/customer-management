@@ -10,7 +10,10 @@ namespace Models.Infrastructure
     {
         public void Transition(IEntity entity)
         {
+            var currentState = entity.State;
             entity.State = GetNextState(entity.State);
+
+            EventAggregator.Log("State change: from:'{0}' to '{1}', Entity Id: '{2}'", currentState, entity.State, entity.Id);
         }
 
         private string GetNextState(string currentState, bool success = true)

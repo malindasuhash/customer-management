@@ -8,9 +8,6 @@ using System.Threading.Tasks;
 
 namespace Models.Infrastructure
 {
-    /// <summary>
-    /// Emulates Collection of objections 
-    /// </summary>
     public class Database
     {
         public static Database Instance = new();
