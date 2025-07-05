@@ -9,10 +9,20 @@ namespace Models.Infrastructure
 {
     public class Outbox
     {
+        public void AsClientCopy(IClientEntity clientEntity)
+        {
+            Database.Instance.AddToClientCopy(clientEntity);
+        }
+
+        public void AsSubmittedCopy(IClientEntity draftEntity)
+        {
+            throw new NotImplementedException();
+        }
+
         public void EntityChanged(ISubmittedEntity submittedEntity)
         {
             // Write to database
-            Database.Instance.
+            Database.Instance.AddToSubmittedCopy(submittedEntity);
 
             // Publish event
             EventAggregator.Publish(new CustomerChanged(submittedEntity.Id, submittedEntity.SubmittedVersion));

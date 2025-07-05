@@ -18,25 +18,46 @@ namespace Service
         {
             Update(clientEntity);
 
+            // Store in database
+            _outbox.AsClientCopy(clientEntity);
+
             // Submit for processing 
             if (submit)
             {
-                EventAggregator.Log("Processing submission, please wait....(simulating copy)"); Thread.Sleep(2000);
+                EventAggregator.Log("Processing submission, please wait....(simulating copy)"); // Thread.Sleep(2000);
 
                 // TODO: I think I need to deep clone entire object hirarchy 
-                // and then find out what has changed. Thereafter raise the event.
-                var entitytoSubmit = (ISubmittedEntity)clientEntity.Clone();
-                _entityManager.Transition(entitytoSubmit);
+                var draftEntities = Database.Instance.GetDraftEntitiesFor(clientEntity.Id); // Customer is special. 
 
-                // Latest draft is marked for submission
-                // We'll take the latest draft from client
-                clientEntity.LastSubmittedVersion = clientEntity.DraftVersion; 
-                
-                entitytoSubmit.SubmittedVersion = clientEntity.LastSubmittedVersion;
+                foreach (var draftEntity in draftEntities)
+                {
+                    // In this case, entity is copied to submitted but change event is not raised.
+                    if (draftEntity.DraftVersion == draftEntity.LastSubmittedVersion)
+                    {
+                        EventAggregator.Log("No change detected for Entity:'{0}' with Id:'{1}'", "EntityName", draftEntity.Id);
 
-                EventAggregator.Log("Entity Cloned, ready for submission \n Draft: [{0}], \n Submitted: [{1}]", clientEntity, entitytoSubmit);
+                        // But the entity needs to be copied to latest submitted state; but no event is raised.
+                        _outbox.AsSubmittedCopy(draftEntity);
+                        return;
+                    }
 
-                _outbox.EntityChanged(entitytoSubmit);
+                    // and then find out what has changed. Thereafter raise the event.
+                    var entitytoSubmit = (ISubmittedEntity)draftEntity.Clone();
+                    _entityManager.Transition(entitytoSubmit);
+
+                    // Latest draft is marked for submission
+                    // We'll take the latest draft from client
+                    draftEntity.LastSubmittedVersion = draftEntity.DraftVersion;
+
+                    entitytoSubmit.SubmittedVersion = draftEntity.LastSubmittedVersion;
+
+                    EventAggregator.Log("Entity Cloned, ready for submission \n Draft: [{0}], \n Submitted: [{1}]", draftEntity, entitytoSubmit);
+
+                    // Perhaps an update to reflect new LastSubmittedVersion in client copy
+
+                    // Copies to submitted and raises the change event
+                    _outbox.EntityChanged(entitytoSubmit);
+                }
             }
             else
             {
@@ -46,16 +67,18 @@ namespace Service
 
         private void Update(IClientEntity clientEntity)
         {
-            if (clientEntity.Id is not null) { 
+            if (clientEntity.Id is not null)
+            {
 
                 // Incrementing the version as there has been a change
                 clientEntity.DraftVersion++;
 
-                EventAggregator.Log("Entity Id {0} updated, State:'{1}' new Draft version:'{2}'", 
-                    clientEntity.Id, 
+                EventAggregator.Log("Entity Id {0} updated, State:'{1}' new Draft version:'{2}'",
+                    clientEntity.Id,
                     clientEntity.State,
                     clientEntity.DraftVersion);
-            } else
+            }
+            else
             {
                 clientEntity.Id = Guid.NewGuid().ToString();
                 clientEntity.DraftVersion = 1;

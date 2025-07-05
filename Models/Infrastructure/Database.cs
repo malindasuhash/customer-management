@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
@@ -16,14 +17,46 @@ namespace Models.Infrastructure
 
         private Database()
         {
-            CustomerCollection = new List<EntityLayout<Customer>>();
+            CustomerCollection = new List<EntityLayout<Customer, CustomerClient>>();
         }
 
-        public IList<EntityLayout<Customer>> CustomerCollection { get; private set; }
+        public IList<EntityLayout<Customer, CustomerClient>> CustomerCollection { get; private set; }
 
-        public bool TryAdd(Customer customer)
+        public void AddToClientCopy(IClientEntity clientEntity)
         {
-            throw new NotImplementedException();
+            var name = clientEntity.GetType().Name.Replace("Client", string.Empty);
+
+            switch (name)
+            {
+                case "Customer":
+                    CustomerCollection.Add(new EntityLayout<Customer, CustomerClient> { Id = clientEntity.Id, ClientCopy = (CustomerClient)clientEntity });
+                    break;
+            }
+
+            EventAggregator.Log("Client Entity:'{0}' with Id:'{1}' Added", name, clientEntity.Id);
+        }
+
+        public List<IClientEntity> GetDraftEntitiesFor(string id)
+        {
+            return CustomerCollection
+                .Where(client => client.Id == id && client.ClientCopy.State.Equals(EntityState.Draft))
+                .Select(a => (IClientEntity)a.ClientCopy)
+                .ToList(); // Run now
+        }
+
+        internal void AddToSubmittedCopy(ISubmittedEntity entitytoSubmit)
+        {
+            var name = entitytoSubmit.GetType().Name;
+
+            switch (name)
+            {
+                case "Customer":
+                    var layout = CustomerCollection.First(customer => customer.Id.Equals(entitytoSubmit.Id));
+                    layout.LastestSubmittedCopy = (Customer)entitytoSubmit;
+                    break;
+            }
+
+            EventAggregator.Log("Submitted Entity:'{0}' with Id:'{1}' Added", name, entitytoSubmit.Id);
         }
 
         internal Customer GetLatestSubmittedCustomer(string customerId)
@@ -41,11 +74,13 @@ namespace Models.Infrastructure
         }
     }
 
-    public class EntityLayout<T> where T : IEntity
+    public class EntityLayout<T, U>
+        where T : IEntity
+        where U : IClientEntity
     {
         public string Id { get; set; }
 
-        public T ClientCopy { get; set; }
+        public U ClientCopy { get; set; }
 
         public T LastestSubmittedCopy { get; set; }
 
