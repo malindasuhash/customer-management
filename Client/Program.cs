@@ -1,16 +1,17 @@
 ﻿// See https://aka.ms/new-console-template for more information
 using Client;
 
-Console.WriteLine("--> Customer Manager Client <--");
+
 
 Thread.Sleep(2000);
 
 var input = new ConsoleKeyInfo();
 var app = new Application();
-var random = new Random(100);
 
 do
 {
+    Console.WriteLine("--> Customer Manager Client <--");
+
     Console.WriteLine("OPTIONS:\n");
 
     Console.WriteLine("1. Add new customer");
