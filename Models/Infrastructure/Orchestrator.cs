@@ -24,12 +24,13 @@ namespace Models.Infrastructure
             var latestCustomerChange = Database.Instance.GetLatestSubmittedCustomer(entitytoSubmit.Id);
             _entityManager.Transition(latestCustomerChange);
             
+            // TODO: Should I let concurrent changes to the same entity to follow through?
             _outbox.Evaluate(latestCustomerChange);
         }
 
         internal void OnNotify(Result result)
         {
-            var workingCopy = Database.Instance.GetLatestWorkingCopy(result.Id, result.Version);
+            var workingCopy = Database.Instance.GetWorkingCopy(result.Id, result.Version);
 
             if (result.Workflow == Workflow.Evaluation && result.NextAction == NextAction.Apply)
             {
@@ -46,7 +47,6 @@ namespace Models.Infrastructure
 
             if (result.Workflow == Workflow.Apply && result.Success)
             {
-                EventAggregator.Log("Change successfully applied for Id:'{0}'", result.Id);
                 _entityManager.Transition(workingCopy);
                 _outbox.Ready(workingCopy);
             }

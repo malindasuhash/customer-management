@@ -81,7 +81,7 @@ namespace Models.Infrastructure
             return latestChange;
         }
 
-        internal Customer GetLatestWorkingCopy(string id, int version)
+        internal Customer GetWorkingCopy(string id, int version)
         {
             var workingCopy = CustomerCollection.First(customer => customer.Id.Equals(id))
                 .WorkingCopy.First(ver => ver.SubmittedVersion == version);
@@ -102,7 +102,7 @@ namespace Models.Infrastructure
             }
         }
 
-        internal void MarkAsReady(Customer workingCopy)
+        internal bool MarkAsReady(Customer workingCopy)
         {
             var name = workingCopy.GetType().Name;
 
@@ -110,9 +110,10 @@ namespace Models.Infrastructure
             {
                 case "Customer":
                     var layout = CustomerCollection.First(item => item.Id.Equals(workingCopy.Id));
-                    layout.MoveFromWorkingCopyToReadyCopy(workingCopy);
-                    break;
+                    return layout.TryMoveFromWorkingCopyToReadyCopy(workingCopy);
             }
+
+            return true;
         }
     }
 
@@ -166,7 +167,7 @@ namespace Models.Infrastructure
             LastestSubmittedCopy = (T)entity;
         }
 
-        public void MoveFromWorkingCopyToReadyCopy(IEntity entity)
+        public bool TryMoveFromWorkingCopyToReadyCopy(IEntity entity)
         {
             int itemAtIndex = 0;
             for (var i = 0; i < WorkingCopy.Count; i++)
@@ -177,8 +178,25 @@ namespace Models.Infrastructure
                 }
             }
 
-            ReadyCopy = (T)entity;
-            WorkingCopy.RemoveAt(itemAtIndex);
+            lock (this) {
+
+                if (ReadyCopy != null)
+                {
+                    var changeVersion = ((ISubmittedEntity)entity).SubmittedVersion;
+                    var readyCopyVersion = ((ISubmittedEntity)ReadyCopy).SubmittedVersion;
+                    
+                    if (readyCopyVersion > changeVersion)
+                    {
+                        // Ready copy is higer than change copy.
+                        return false;
+                    }
+                }
+                
+                ReadyCopy = (T)entity;
+                WorkingCopy.RemoveAt(itemAtIndex);
+            }
+
+            return true;
         }
     }
 }

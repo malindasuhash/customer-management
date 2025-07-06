@@ -9,6 +9,12 @@ namespace Viewer
 {
     internal class Receiver
     {
+        private static ConsoleColor DefaultColour = ConsoleColor.DarkBlue;
+        private static Dictionary<string, ConsoleColor> Tokens = new()
+        {
+            { "<red>", ConsoleColor.Red }
+        };
+
         public void Receive()
         {
             int minutesToRun = 5;
@@ -26,13 +32,28 @@ namespace Viewer
                 using var reader = new StreamReader(server);
                 while ((DateTime.Now - startTime).TotalMinutes < minutesToRun)
                 {
-                    Console.WriteLine(reader.ReadLine());
+                    var info = ParseText(reader.ReadLine());
+                    Console.BackgroundColor = info.Item1;
+                    Console.Write(info.Item3); Console.WriteLine();
+                    Console.BackgroundColor = info.Item2;
                 }
-
             });
 
             Console.WriteLine("Press Enter to terminate");
             Console.ReadKey();
+        }
+
+        private Tuple<ConsoleColor, ConsoleColor, string> ParseText(string lineToPrint)
+        {
+            foreach (var token in Tokens)
+            {
+                if (lineToPrint.Contains(token.Key, StringComparison.InvariantCultureIgnoreCase))
+                {
+                    return Tuple.Create(token.Value, DefaultColour, lineToPrint.Replace(token.Key, string.Empty));
+                }
+            }
+
+            return Tuple.Create(DefaultColour, DefaultColour, lineToPrint);
         }
     }
 }

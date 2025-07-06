@@ -44,7 +44,14 @@ namespace Models.Infrastructure
 
         internal void Ready(Customer workingCopy)
         {
-            Database.Instance.MarkAsReady(workingCopy);
+            var readyUpdateResult = Database.Instance.MarkAsReady(workingCopy);
+
+            if (!readyUpdateResult)
+            {
+                // TODO: What should happen here? Do I rollback or re-trigger a new workflow?
+                EventAggregator.Log("<red>STOP: Working copy is outdated. Higher version.");
+                return;
+            }
 
             EventAggregator.Publish(new CustomerSynchonised(workingCopy.Id, workingCopy.SubmittedVersion));
         }
