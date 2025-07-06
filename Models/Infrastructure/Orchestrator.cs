@@ -31,13 +31,18 @@ namespace Models.Infrastructure
         {
             var workingCopy = Database.Instance.GetLatestWorkingCopy(result.Id);
 
-            if (result.NextAction == NextAction.Apply)
+            if (result.Workflow == Workflow.Evaluation && result.NextAction == NextAction.Apply)
             {
-                // TODO: Set working copy applying, then start workflow
                 _entityManager.Transition(workingCopy);
                 _outbox.Apply(workingCopy);
-                
+                return;
             } 
+
+            if (result.Workflow == Workflow.Evaluation && !result.Success)
+            {
+                _entityManager.Transition(workingCopy, result.Success);
+                _outbox.WorkingCopyfailed(workingCopy);
+            }
 
             if (result.Workflow == Workflow.Apply && result.Success)
             {

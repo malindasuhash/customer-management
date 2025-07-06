@@ -46,7 +46,14 @@ namespace Models.Infrastructure
         {
             Database.Instance.MarkAsReady(workingCopy);
 
-            EventAggregator.Publish(new CustomerReady(workingCopy.Id, workingCopy.SubmittedVersion));
+            EventAggregator.Publish(new CustomerSynchonised(workingCopy.Id, workingCopy.SubmittedVersion));
+        }
+
+        internal void WorkingCopyfailed(Customer workingCopy)
+        {
+            Database.Instance.MarkAsReady(workingCopy);
+
+            EventAggregator.Publish(new CustomerEvalidationFailed(workingCopy.Id, workingCopy.SubmittedVersion));
         }
     }
 }

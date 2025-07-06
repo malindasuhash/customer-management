@@ -6,12 +6,12 @@ using System.Threading.Tasks;
 
 namespace Models.Infrastructure.Events
 {
-    internal class CustomerReady : IEventInfo
+    internal class CustomerSynchonised : IEventInfo
     {
-        public string EventName => nameof(CustomerReady);
+        public string EventName => nameof(CustomerSynchonised);
         public string CustomerId { get; }
         public int Version { get; }
-        public CustomerReady(string customerId, int version)
+        public CustomerSynchonised(string customerId, int version)
         {
             CustomerId = customerId;
             Version = version;

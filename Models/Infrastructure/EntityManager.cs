@@ -8,10 +8,10 @@ namespace Models.Infrastructure
 {
     public class EntityManager
     {
-        public void Transition(IEntity entity)
+        public void Transition(IEntity entity, bool success = true)
         {
             var currentState = entity.State;
-            entity.State = GetNextState(entity.State);
+            entity.State = GetNextState(entity.State, success);
 
             EventAggregator.Log("State change: from:'{0}' to '{1}', Entity Id: '{2}'", currentState, entity.State, entity.Id);
         }
@@ -27,8 +27,8 @@ namespace Models.Infrastructure
             {
                 EntityState.Draft => EntityState.Submitted,
                 EntityState.Submitted => EntityState.Evaluating,
-                EntityState.Evaluating => EntityState.Applying,
-                EntityState.Applying => EntityState.Ready,
+                EntityState.Evaluating => success ? EntityState.Applying : EntityState.Failed,
+                EntityState.Applying => EntityState.Synchonised,
                 _ => EntityState.Failed,
             };
         }

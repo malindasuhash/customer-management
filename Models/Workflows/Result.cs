@@ -16,6 +16,8 @@ namespace Models.Workflows
 
         public static Result EvaluationSuccess(string id, int version) => new(id, version, true, Workflow.Evaluation, NextAction.Apply);
 
+        public static Result EvaluationFailed(string id, int version) => new(id, version, false, Workflow.Evaluation, NextAction.None);
+
         public static Result ApplySuccess(string id, int version) => new(id, version, true, Workflow.Apply, NextAction.None);
 
         private Result(string id, int version, bool success, Workflow workflow, NextAction nextAction)

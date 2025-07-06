@@ -21,17 +21,16 @@ namespace Models.Workflows
             if (workingCopy.EmailAddress.Contains("bad", StringComparison.InvariantCultureIgnoreCase))
             {
                 EventAggregator.Log("CustomerEvaluationWorkflow - bad email:'{0}' for Customer:'{1}'", workingCopy.EmailAddress, workingCopy.Id); Thread.Sleep(1000);
-                
+
                 // Notify Orchestrator.
-                EventAggregator.Publish(new CustomerEvaluationCompleteEvent(customerEvent.CustomerId, customerEvent.Version, false));
+                Orchestrator.Instance.OnNotify(Result.EvaluationFailed(workingCopy.Id, workingCopy.SubmittedVersion));
+            } else
+            {
+                EventAggregator.Log("CustomerEvaluationWorkflow - valid email:'{0}' for Customer:'{1}'", workingCopy.EmailAddress, workingCopy.Id); Thread.Sleep(1000);
 
-                return;
+                // Notify Orchestrator.
+                Orchestrator.Instance.OnNotify(Result.EvaluationSuccess(customerEvent.CustomerId, customerEvent.Version));
             }
-
-            EventAggregator.Log("CustomerEvaluationWorkflow - valid email:'{0}' for Customer:'{1}'", workingCopy.EmailAddress, workingCopy.Id); Thread.Sleep(1000);
-
-            // Notify Orchestrator.
-            Orchestrator.Instance.OnNotify(Result.EvaluationSuccess(customerEvent.CustomerId, customerEvent.Version));
 
             EventAggregator.Log("END: CustomerEvaluationWorkflow - Customer Id:'{0}', Version: {1}", customerEvent.CustomerId, customerEvent.Version);
         }
