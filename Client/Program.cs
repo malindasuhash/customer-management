@@ -10,7 +10,7 @@ var app = new Application();
 
 do
 {
-    Console.WriteLine("--> Customer Manager Client <--");
+    Console.WriteLine("--> Customer Manager Client <--\n");
 
     Console.WriteLine("OPTIONS:\n");
 
