@@ -29,7 +29,7 @@ namespace Models.Infrastructure
 
         internal void OnNotify(Result result)
         {
-            var workingCopy = Database.Instance.GetLatestWorkingCopy(result.Id);
+            var workingCopy = Database.Instance.GetLatestWorkingCopy(result.Id, result.Version);
 
             if (result.Workflow == Workflow.Evaluation && result.NextAction == NextAction.Apply)
             {

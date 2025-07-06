@@ -81,9 +81,10 @@ namespace Models.Infrastructure
             return latestChange;
         }
 
-        internal Customer GetLatestWorkingCopy(string id)
+        internal Customer GetLatestWorkingCopy(string id, int version)
         {
-            var workingCopy = CustomerCollection.First(customer => customer.Id.Equals(id)).WorkingCopy;
+            var workingCopy = CustomerCollection.First(customer => customer.Id.Equals(id))
+                .WorkingCopy.First(ver => ver.SubmittedVersion == version);
 
             return workingCopy;
         }
@@ -108,7 +109,7 @@ namespace Models.Infrastructure
             switch (name)
             {
                 case "Customer":
-                    var layout = CustomerCollection.First(customer => customer.Id.Equals(workingCopy.Id));
+                    var layout = CustomerCollection.First(item => item.Id.Equals(workingCopy.Id));
                     layout.MoveFromWorkingCopyToReadyCopy(workingCopy);
                     break;
             }
@@ -142,7 +143,7 @@ namespace Models.Infrastructure
         /// is in WorkingCopy, its State may change. For example, State may
         /// change to Evaluating -> Applying etc. 
         /// </summary>
-        public T? WorkingCopy { get; set; }
+        public IList<T?> WorkingCopy { get; set; }
 
         /// <summary>
         /// Once a workflow has run to end (success or not), then the entity will
@@ -154,7 +155,9 @@ namespace Models.Infrastructure
 
         public void MoveFromSubmittedCopyToWorkingCopy(IEntity entity)
         {
-            WorkingCopy = (T)entity;
+            WorkingCopy ??= new List<T?>();
+
+            WorkingCopy.Add((T)entity);
             LastestSubmittedCopy = default;
         }
 
@@ -165,8 +168,17 @@ namespace Models.Infrastructure
 
         public void MoveFromWorkingCopyToReadyCopy(IEntity entity)
         {
+            int itemAtIndex = 0;
+            for (var i = 0; i < WorkingCopy.Count; i++)
+            {
+                if ((IEntity)WorkingCopy[i] == entity)
+                {
+                    itemAtIndex = i;
+                }
+            }
+
             ReadyCopy = (T)entity;
-            WorkingCopy = default;
+            WorkingCopy.RemoveAt(itemAtIndex);
         }
     }
 }

@@ -48,10 +48,21 @@ namespace Service
                 EventAggregator.Log("Id:{0}", customer.Id);
                 EventAggregator.Log("ClientCopy:'{0}'", customer.ClientCopy == null? string.Empty : customer.ClientCopy.ToString());
                 EventAggregator.Log("SubmittedCopy:'{0}'", customer.LastestSubmittedCopy == null ? string.Empty : customer.LastestSubmittedCopy.ToString());
-                EventAggregator.Log("WorkingCopy:'{0}'", customer.WorkingCopy == null ? string.Empty : customer.WorkingCopy.ToString());
+                EventAggregator.Log("WorkingCopy:'{0}'", customer.WorkingCopy == null ? string.Empty : DoFormat(customer.WorkingCopy));
                 EventAggregator.Log("ReadyCopy:'{0}'", customer.ReadyCopy == null ? string.Empty : customer.ReadyCopy.ToString());
                 EventAggregator.Log("<...RECORD END....>");
             }
+        }
+
+        private static string DoFormat(IList<Customer?> workingCopy)
+        {
+            StringBuilder sb = new();
+
+            foreach (var customer in workingCopy) {
+                sb.AppendLine(customer.ToString());
+            }
+
+            return sb.ToString();
         }
     }
 }
