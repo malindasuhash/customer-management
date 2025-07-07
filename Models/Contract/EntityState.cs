@@ -13,3 +13,13 @@ public static class EntityState
 
     public const string Failed = "FAILED";
 }
+
+public static class EnityName
+{
+    public const string Customer = "Customer";
+
+    public const string LegalEntity = "LegalEntity";
+
+    public const string CustomerClient = "CustomerClient";
+    // Add more entity names as needed
+}

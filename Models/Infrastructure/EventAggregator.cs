@@ -37,15 +37,17 @@ namespace Models.Infrastructure
             _eventWriter.WriteLine(eventInfo);
             _eventWriter.AutoFlush = true;
 
+            if (eventInfo is EntitySubmitted submitted)
+            {
+                // Orchestrator is a special case, it handles the event directly
+                Orchestrator.Instance.EntitySubmitted(submitted.EntityId, submitted.EntityName);
+                return;
+            }
+
             // Find out whether there is a workflow mapping
             var workload = _typeMappings.GetValueOrDefault(eventInfo.GetType());
 
-            if (workload != null && typeof(Orchestrator).IsAssignableFrom(workload) && eventInfo is EntitySubmitted submitted)
-            {
-                // Orchestrator is a special case, it handles the event directly
-                Orchestrator.Instance.EntitySubmitted(submitted.EntityId);
-            }
-            else if (workload != null && typeof(IWorkflow).IsAssignableFrom(workload))
+            if (workload != null && typeof(IWorkflow).IsAssignableFrom(workload))
             {
                 Task.Run(() =>
                 {
@@ -59,7 +61,7 @@ namespace Models.Infrastructure
         public static void Log(string message, params object[] values)
         {
             _logWriter ??= new StreamWriter(_logClient);
-            _logWriter.WriteLine(String.Format("{0} -> {1}", DateTime.Now.ToString("HH:mm:ss:ff"), string.Format(message, values)));
+            _logWriter.WriteLine(string.Format("{0} -> {1}", DateTime.Now.ToString("HH:mm:ss:ff"), string.Format(message, values)));
             _logWriter.AutoFlush = true;
         }
 

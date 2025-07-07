@@ -18,7 +18,7 @@ namespace Models.Infrastructure
         private readonly EntityManager _entityManager = new();
         private readonly Outbox _outbox = new();
 
-        public void EntitySubmitted(string entityId)
+        public void EntitySubmitted(string entityId, string entityName)
         {
             // TODO: This is where the access to customer may need to be serialised
             var latestCustomerChange = Database.Instance.GetLatestSubmittedCustomer(entityId);

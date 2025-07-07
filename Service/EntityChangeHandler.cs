@@ -1,11 +1,11 @@
-﻿using Models;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Models.Infrastructure;
 using Models.Infrastructure.Events;
+using Models.Contract;
 
 namespace Service
 {
@@ -54,7 +54,7 @@ namespace Service
 
                     EventAggregator.Log("Entity cloned & submitting, \n Draft: [{0}], \n Submitted: [{1}]", draftEntity, entitytoSubmit);
 
-                    EventAggregator.Publish(new EntitySubmitted(entitytoSubmit.Id, entitytoSubmit.SubmittedVersion));
+                    EventAggregator.Publish(new EntitySubmitted(entitytoSubmit.Id, entitytoSubmit.Name, entitytoSubmit.SubmittedVersion));
                 }
             }
         }

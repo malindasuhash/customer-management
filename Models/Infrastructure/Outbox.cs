@@ -1,4 +1,5 @@
-﻿using Models.Infrastructure.Events;
+﻿using Models.Contract;
+using Models.Infrastructure.Events;
 using Models.Workflows;
 using System;
 using System.Collections.Generic;

@@ -1,4 +1,5 @@
-﻿using Models.Infrastructure.Events;
+﻿using Models.Contract;
+using Models.Infrastructure.Events;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -8,25 +9,12 @@ using System.Threading.Tasks;
 
 namespace Models
 {
-    public interface ISubmittedEntity : IEntity
-    {
-        int SubmittedVersion { get; set; }
-
-        IEventInfo GetChangedEvent();
-    }
-
-    public interface IClientEntity : IEntity, ICloneable
-    {
-        public int DraftVersion { get; set; }
-
-        public int LastSubmittedVersion { get; set; }
-    }
-
     public class CustomerBase : IEntity
     {
         public string Id { get; set; }
         public string EmailAddress { get; set; }
         public string State { get; set; }
+        public string Name => EnityName.Customer;
     }
 
     public class Customer : CustomerBase, ISubmittedEntity, IVersionable
