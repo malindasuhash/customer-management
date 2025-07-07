@@ -18,10 +18,10 @@ namespace Models.Infrastructure
         private readonly EntityManager _entityManager = new();
         private readonly Outbox _outbox = new();
 
-        public void EntitySubmitted(ISubmittedEntity entitytoSubmit)
+        public void EntitySubmitted(string entityId)
         {
             // TODO: This is where the access to customer may need to be serialised
-            var latestCustomerChange = Database.Instance.GetLatestSubmittedCustomer(entitytoSubmit.Id);
+            var latestCustomerChange = Database.Instance.GetLatestSubmittedCustomer(entityId);
             _entityManager.Transition(latestCustomerChange);
             
             // TODO: Should I let concurrent changes to the same entity to follow through?

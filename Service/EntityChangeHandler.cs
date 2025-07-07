@@ -38,7 +38,7 @@ namespace Service
                         EventAggregator.Log("No change detected for Entity:'{0}' with Id:'{1}'", "EntityName", draftEntity.Id);
 
                         // But the entity needs to be copied to latest submitted state; but no event is raised.
-                        _outbox.AsSubmittedCopy(entitytoSubmit);
+                        _outbox.SubmittedCopy(entitytoSubmit);
                         return;
                     }
 
@@ -50,11 +50,11 @@ namespace Service
                     // proper database implementation.
 
                     // Copies to submitted and raises the change event
-                    _outbox.AsSubmittedCopy(entitytoSubmit);
+                    _outbox.SubmittedCopy(entitytoSubmit);
 
                     EventAggregator.Log("Entity cloned & submitting, \n Draft: [{0}], \n Submitted: [{1}]", draftEntity, entitytoSubmit);
 
-                    Orchestrator.Instance.EntitySubmitted(entitytoSubmit);
+                    EventAggregator.Publish(new EntitySubmitted(entitytoSubmit.Id, entitytoSubmit.SubmittedVersion));
                 }
             }
         }
@@ -72,7 +72,7 @@ namespace Service
                     clientEntity.DraftVersion);
 
                 // Update in database
-                _outbox.AsUpdateClientCopy(clientEntity);
+                _outbox.UpdateClientCopy(clientEntity);
             }
             else
             {
@@ -81,7 +81,7 @@ namespace Service
                 _entityManager.Transition(clientEntity);
 
                 // New in database
-                _outbox.AsNewClientCopy(clientEntity);
+                _outbox.NewClientCopy(clientEntity);
             }
         }
     }

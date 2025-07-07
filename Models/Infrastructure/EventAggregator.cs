@@ -18,7 +18,7 @@ namespace Models.Infrastructure
         private static StreamWriter _eventWriter;
         private static StreamWriter _logWriter;
 
-        private static Dictionary<Type, Type> _workflowMappings;
+        private static Dictionary<Type, Type> _typeMappings;
 
         static EventAggregator()
         {
@@ -38,16 +38,22 @@ namespace Models.Infrastructure
             _eventWriter.AutoFlush = true;
 
             // Find out whether there is a workflow mapping
-            var workflowType = _workflowMappings.GetValueOrDefault(eventInfo.GetType());
+            var workload = _typeMappings.GetValueOrDefault(eventInfo.GetType());
 
-            if (workflowType is null) return;
-
-            Task.Run(() =>
+            if (workload != null && typeof(Orchestrator).IsAssignableFrom(workload) && eventInfo is EntitySubmitted submitted)
             {
-                // Creates a new workflow dynamically
-                var instance = Activator.CreateInstance(workflowType);
-                instance.GetType().InvokeMember("Run", BindingFlags.InvokeMethod, null, instance, new object[] { eventInfo });
-            });
+                // Orchestrator is a special case, it handles the event directly
+                Orchestrator.Instance.EntitySubmitted(submitted.EntityId);
+            }
+            else if (workload != null && typeof(IWorkflow).IsAssignableFrom(workload))
+            {
+                Task.Run(() =>
+                {
+                    // Creates a new workflow dynamically
+                    var instance = Activator.CreateInstance(workload);
+                    instance.GetType().InvokeMember("Run", BindingFlags.InvokeMethod, null, instance, new object[] { eventInfo });
+                });
+            }
         }
 
         public static void Log(string message, params object[] values)
@@ -59,7 +65,7 @@ namespace Models.Infrastructure
 
         private static void SetWorkflowMappings()
         {
-            _workflowMappings = new Dictionary<Type, Type>()
+            _typeMappings = new Dictionary<Type, Type>()
             {
                 {  typeof(CustomerChanged), typeof(CustomerEvaluationWorkflow) },
                 {  typeof(CustomerEvaluationCompleteEvent), typeof(CustomerApplyWorkflow) }

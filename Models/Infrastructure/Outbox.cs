@@ -11,17 +11,17 @@ namespace Models.Infrastructure
 {
     public class Outbox
     {
-        public void AsNewClientCopy(IClientEntity clientEntity)
+        public void NewClientCopy(IClientEntity clientEntity)
         {
             Database.Instance.AddToClientCopy(clientEntity);
         }
 
-        public void AsUpdateClientCopy(IClientEntity clientEntity)
+        public void UpdateClientCopy(IClientEntity clientEntity)
         {
             Database.Instance.UpdateClientCopy(clientEntity);
         }
 
-        public void AsSubmittedCopy(ISubmittedEntity submittedEntity)
+        public void SubmittedCopy(ISubmittedEntity submittedEntity)
         {
             Database.Instance.AddToSubmittedCopy(submittedEntity);
         }
