@@ -32,10 +32,11 @@ namespace Viewer
                 using var reader = new StreamReader(server);
                 while ((DateTime.Now - startTime).TotalMinutes < minutesToRun)
                 {
-                    var info = ParseText(reader.ReadLine());
-                    Console.BackgroundColor = info.Item1;
-                    Console.Write(info.Item3); Console.WriteLine();
-                    Console.BackgroundColor = info.Item2;
+                    var line = reader.ReadLine(); if (line == null) continue;
+                    var printableLineInfo = ParseText(line);
+                    Console.BackgroundColor = printableLineInfo.Item1;
+                    Console.Write(printableLineInfo.Item3); Console.WriteLine();
+                    Console.BackgroundColor = printableLineInfo.Item2;
                 }
             });
 

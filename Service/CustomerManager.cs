@@ -19,9 +19,11 @@ namespace Service
             return customerClient;
         }
 
-        public CustomerClient GetCustomer(string customerId)
+        public EntityLayout<Customer, CustomerClient> GetCustomer(int index)
         {
-            return default;
+            var layout = Database.Instance.CustomerCollection.ElementAt(index);
+
+            return layout;
         }
 
         public IEnumerable<CustomerClient> GetCustomers()

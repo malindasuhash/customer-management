@@ -33,9 +33,9 @@ namespace Client
         }
 
         // GET /customer/{customerId}
-        public CustomerClient GetCustomer(string customerId)
+        public EntityLayout<Customer, CustomerClient> GetCustomer(int index) // For simplicity, using index as customerId
         {
-            var customer = _service.GetCustomer(customerId);
+            var customer = _service.GetCustomer(index);
 
             return customer;
         }

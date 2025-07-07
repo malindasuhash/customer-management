@@ -1,7 +1,7 @@
 ﻿// See https://aka.ms/new-console-template for more information
 using Client;
-
-
+using Models;
+using Models.Infrastructure;
 
 Thread.Sleep(2000);
 
@@ -18,7 +18,7 @@ do
     Console.WriteLine("2. Add new customer and submit");
     Console.WriteLine("3. Update customer customer");
     Console.WriteLine("4. Submit customer");
-    Console.WriteLine();
+    Console.WriteLine("5. Get customer");
     Console.WriteLine("A. Display data");
 
     Console.WriteLine("0. Exit");
@@ -36,10 +36,7 @@ do
             break;
 
         case ConsoleKey.D3:
-            Console.WriteLine();
-            Console.WriteLine("Input needed:");
-            Console.WriteLine("--> Customer Index: ");
-            var customerIndex = int.Parse(Console.ReadLine());
+          var customerIndex = GetIndex();
 
             Console.WriteLine("--> Customer emailAddress: ");
             var customerEmail = Console.ReadLine();
@@ -48,12 +45,18 @@ do
             break;
 
         case ConsoleKey.D4:
-            Console.WriteLine();
-            Console.WriteLine("Input needed:");
-            Console.WriteLine("--> Customer Index: ");
-            var index = int.Parse(Console.ReadLine());
+            var index = GetIndex();
 
             app.UpdateCustomer(index);
+
+            break;
+
+        case ConsoleKey.D5:
+            var showIndex = GetIndex();
+            var customer = app.GetCustomer(showIndex);
+            DisplayDetails(customer);
+
+            Console.ReadKey();
 
             break;
         case ConsoleKey.A:
@@ -65,5 +68,46 @@ do
 
 } while (input.Key != ConsoleKey.D0);
 
+void DisplayDetails(EntityLayout<Customer, CustomerClient> customer)
+{
+    if (customer != null)
+    {
+        Console.WriteLine($"Customer ID: {customer.Id}");
+        Console.WriteLine($"Client Copy: {customer.ClientCopy}");
+        Console.WriteLine($"Latest Submitted Copy: {customer.LastestSubmittedCopy}");
+        if (customer.WorkingCopy != null)
+        {
+            Console.WriteLine($"Working Copy: {string.Join("| ", customer.WorkingCopy)}");
+        }
+        else
+        {
+            Console.WriteLine("Working Copy:");
+        }
+
+        Console.WriteLine($"Ready Copy: {customer.ReadyCopy}");
+    }
+    else
+    {
+        Console.WriteLine("No customer details available.");
+    }
+}
+
 Console.WriteLine("Enter to terminate");
 Console.ReadLine();
+
+int GetIndex()
+{
+    Console.WriteLine();
+    Console.WriteLine("Input needed:");
+    Console.WriteLine("--> Customer Index: ");
+    int index;
+    var result = int.TryParse(Console.ReadLine(), out index);
+
+    if (!result || index < 0)
+    {
+        Console.WriteLine("Invalid index. Please enter a valid non-negative integer.");
+        return GetIndex(); // Recursive call to get a valid index
+    }
+
+    return index;
+}
