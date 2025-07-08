@@ -12,7 +12,10 @@ namespace Viewer
         private static ConsoleColor DefaultColour = ConsoleColor.DarkBlue;
         private static Dictionary<string, ConsoleColor> Tokens = new()
         {
-            { "<red>", ConsoleColor.Red }
+            { "<red>", ConsoleColor.Red },
+            { "<cyan>", ConsoleColor.Cyan },
+            { "<magenta>", ConsoleColor.Magenta },
+            { "<yellow>", ConsoleColor.Yellow }
         };
 
         public void Receive()

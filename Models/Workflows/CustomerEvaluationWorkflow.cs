@@ -14,7 +14,7 @@ namespace Models.Workflows
         {
             var customerEvent = (CustomerChanged)eventInfo;
 
-            EventAggregator.Log("START: CustomerEvaluationWorkflow - Customer Id:'{0}', Version:{1}", customerEvent.CustomerId, customerEvent.Version);
+            EventAggregator.Log("<magenta> START: CustomerEvaluationWorkflow - Customer Id:'{0}', Version:{1}", customerEvent.CustomerId, customerEvent.Version);
 
             var workingCopy = Database.Instance.CustomerCollection.First(entry => entry.Id.Equals(customerEvent.CustomerId)).WorkingCopy.First(ver => ver.SubmittedVersion == eventInfo.Version);
 

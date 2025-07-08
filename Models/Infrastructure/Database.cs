@@ -116,6 +116,19 @@ namespace Models.Infrastructure
 
             return true;
         }
+
+        internal void DiscardWorkingCopy(Customer workingCopy)
+        {
+            var name = workingCopy.GetType().Name;
+
+            switch (name)
+            {
+                case "Customer":
+                    var layout = CustomerCollection.First(item => item.Id.Equals(workingCopy.Id));
+                    layout.RemoveFromWorkingCopy(workingCopy);
+                    break;
+            }
+        }
     }
 
     public class EntityLayout<T, U>
@@ -166,6 +179,16 @@ namespace Models.Infrastructure
         public void SetLatestSubmittedCopy(IEntity entity)
         {
             LastestSubmittedCopy = (T)entity;
+        }
+
+        public void RemoveFromWorkingCopy(IEntity entity)
+        {
+            if (WorkingCopy == null || WorkingCopy.Count == 0)
+            {
+                return;
+            }
+
+            WorkingCopy.Remove((T)entity);
         }
 
         public bool TryMoveFromWorkingCopyToReadyCopy(IEntity entity)
