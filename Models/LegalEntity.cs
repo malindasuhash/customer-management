@@ -21,7 +21,6 @@ namespace Models
     {
         public int DraftVersion { get; set; }
         public int LastSubmittedVersion { get; set; }
-
         public int SubmittedVersion { get; set; }
 
         public object Clone()

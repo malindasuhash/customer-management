@@ -12,6 +12,7 @@ namespace Client
     internal class Application
     {
         private readonly CustomerManager _service;
+        private string _lastCustomerId = string.Empty;
 
         public Application()
         {
@@ -30,6 +31,7 @@ namespace Client
 
             
             _service.AddCustomer(customerClient, submit); 
+            _lastCustomerId = customerClient.Id;
         }
 
         // GET /customer/{customerId}
@@ -55,6 +57,16 @@ namespace Client
             var customer = _service.GetCustomers().ElementAt(index);
 
             _service.UpdateCustomer(customer, true);
+        }
+
+        public LegalEntityClient AddLegalEntity(int customerIndex, LegalEntityClient legalEntityClient, bool submit = false)
+        {
+            var customer = _service.GetCustomers().ElementAt(customerIndex);
+            legalEntityClient.CustomerId = customer.Id;
+
+            _service.AddLegalEntity(customer.Id, legalEntityClient, submit);
+
+            return legalEntityClient;
         }
 
         public void ShowData()

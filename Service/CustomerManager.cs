@@ -66,5 +66,12 @@ namespace Service
 
             return sb.ToString();
         }
+
+        public LegalEntityClient AddLegalEntity(string customerId, LegalEntityClient legalEntityClient, bool submit)
+        {
+            _changeHandler.Change(legalEntityClient, submit);
+
+            return legalEntityClient;
+        }
     }
 }

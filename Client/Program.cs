@@ -2,10 +2,11 @@
 using Client;
 using Models;
 using Models.Infrastructure;
+using System;
 
 Thread.Sleep(2000);
 
-var input = new ConsoleKeyInfo();
+string input = "0";
 var app = new Application();
 
 do
@@ -19,23 +20,29 @@ do
     Console.WriteLine("3. Update customer customer");
     Console.WriteLine("4. Submit customer");
     Console.WriteLine("5. Get customer");
+    Console.WriteLine();
+    Console.WriteLine("6. Add new legal entity (attach to latest customer)");
+    Console.WriteLine("7. Add new legal entity and submit (attach to latest customer)");
+    Console.WriteLine("8. Update legal entity");
+    Console.WriteLine("9. Submit legal entity");
+    Console.WriteLine();
     Console.WriteLine("A. Display data");
 
     Console.WriteLine("0. Exit");
 
-    input = Console.ReadKey();
+    Console.WriteLine("Choice:"); input = Console.ReadLine();
 
-    switch (input.Key)
+    switch (input)
     {
-        case ConsoleKey.D1:
+        case "1":
             app.AddCustomer("email1@mail.com");
             break;
 
-        case ConsoleKey.D2:
+        case "2":
             app.AddCustomer("email2@mail.com", true);
             break;
 
-        case ConsoleKey.D3:
+        case "3":
           var customerIndex = GetIndex();
 
             Console.WriteLine("--> Customer emailAddress: ");
@@ -44,14 +51,13 @@ do
             app.UpdateCustomer(customerIndex, customerEmail);
             break;
 
-        case ConsoleKey.D4:
+        case "4":
             var index = GetIndex();
-
             app.UpdateCustomer(index);
 
             break;
 
-        case ConsoleKey.D5:
+        case "5":
             var showIndex = GetIndex();
             var customer = app.GetCustomer(showIndex);
             DisplayDetails(customer);
@@ -59,14 +65,20 @@ do
             Console.ReadKey();
 
             break;
-        case ConsoleKey.A:
+
+        case "6":
+            var i = GetIndex();
+            app.AddLegalEntity(i, new LegalEntityClient { LegalName = "Cambridge Bakery" });
+            break;
+
+        case "a":
             app.ShowData();
             break;
     }
 
     Console.Clear();
 
-} while (input.Key != ConsoleKey.D0);
+} while (!input.Equals("0", StringComparison.OrdinalIgnoreCase));
 
 void DisplayDetails(EntityLayout<Customer, CustomerClient> customer)
 {
