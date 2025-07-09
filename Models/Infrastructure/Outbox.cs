@@ -36,7 +36,7 @@ namespace Models.Infrastructure
             EventAggregator.Publish(latestEntityChange.GetChangedEvent());
         }
 
-        internal void Apply(Customer workingCopy)
+        internal void Apply(ISubmittedEntity workingCopy)
         {
             // Update state
 
@@ -44,21 +44,21 @@ namespace Models.Infrastructure
             EventAggregator.Publish(new CustomerEvaluationCompleteEvent(workingCopy.Id, workingCopy.SubmittedVersion, true));
         }
 
-        internal void Ready(Customer workingCopy)
+        internal void Ready(ISubmittedEntity workingCopy)
         {
             var readyUpdateResult = Database.Instance.MarkAsReady(workingCopy);
 
             EventAggregator.Publish(new CustomerSynchonised(workingCopy.Id, workingCopy.SubmittedVersion));
         }
 
-        internal void WorkingCopyfailed(Customer workingCopy)
+        internal void WorkingCopyfailed(ISubmittedEntity workingCopy)
         {
             Database.Instance.MarkAsReady(workingCopy);
 
             EventAggregator.Publish(new CustomerEvalidationFailed(workingCopy.Id, workingCopy.SubmittedVersion));
         }
 
-        internal void DiscardWorkingCopy(Customer workingCopy)
+        internal void DiscardWorkingCopy(ISubmittedEntity workingCopy)
         {
             Database.Instance.DiscardWorkingCopy(workingCopy);
         }

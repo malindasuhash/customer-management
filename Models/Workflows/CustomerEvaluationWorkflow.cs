@@ -23,7 +23,7 @@ namespace Models.Workflows
                 EventAggregator.Log("CustomerEvaluationWorkflow - bad email:'{0}' for Customer:'{1}'", workingCopy.EmailAddress, workingCopy.Id); Thread.Sleep(1000);
 
                 // Notify Orchestrator.
-                Orchestrator.Instance.OnNotify(Result.EvaluationFailed(workingCopy.Id, workingCopy.SubmittedVersion));
+                Orchestrator.Instance.OnNotify(Result.EvaluationFailed(workingCopy.Id, workingCopy.SubmittedVersion, workingCopy.Name));
             } else
             {
                 // Random delay with email
@@ -31,7 +31,7 @@ namespace Models.Workflows
                 EventAggregator.Log("CustomerEvaluationWorkflow - valid email:'{0}' for Customer:'{1}'", workingCopy.EmailAddress, workingCopy.Id); Thread.Sleep(secondsToWait * 1000);
 
                 // Notify Orchestrator.
-                Orchestrator.Instance.OnNotify(Result.EvaluationSuccess(customerEvent.CustomerId, customerEvent.Version));
+                Orchestrator.Instance.OnNotify(Result.EvaluationSuccess(customerEvent.CustomerId, customerEvent.Version, workingCopy.Name));
             }
 
             EventAggregator.Log("END: CustomerEvaluationWorkflow - Customer Id:'{0}', Version: {1}", customerEvent.CustomerId, customerEvent.Version);

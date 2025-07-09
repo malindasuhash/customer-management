@@ -22,7 +22,7 @@ namespace Models.Workflows
             EventAggregator.Log("CustomerApplyWorkflow - Applying change to Identity & Authorisation system for Customer:'{0}'", workingCopy.Id); Thread.Sleep(3000);
 
             // Notify Orchestrator
-            Orchestrator.Instance.OnNotify(Result.ApplySuccess(workingCopy.Id, workingCopy.SubmittedVersion));
+            Orchestrator.Instance.OnNotify(Result.ApplySuccess(workingCopy.Id, workingCopy.SubmittedVersion, workingCopy.Name));
 
             EventAggregator.Log("END: CustomerApplyWorkflow - Customer Id:'{0}', Version: {1}", customerEvent.CustomerId, customerEvent.Version);
         }

@@ -126,19 +126,23 @@ namespace Models.Infrastructure
             return null;
         }
 
-        internal Customer GetWorkingCopy(string id, int version)
+        internal ISubmittedEntity? GetWorkingCopy(string id, int version, string entityName)
         {
-            var workingCopy = CustomerCollection.First(customer => customer.Id.Equals(id))
-                .WorkingCopy.First(ver => ver.SubmittedVersion == version);
+            switch (entityName)
+            {
+                case EntityName.Customer:
+                    return CustomerCollection.FirstOrDefault(customer => customer.Id.Equals(id, StringComparison.Ordinal))?.LastestSubmittedCopy;
 
-            return workingCopy;
+                case EntityName.LegalEntity:
+                    return LegalEntityCollection.FirstOrDefault(legalEntity => legalEntity.Id.Equals(id, StringComparison.Ordinal))?.LastestSubmittedCopy;
+            }
+
+            return null;
         }
 
         internal void MarkAsWorkingCopy(ISubmittedEntity latestChange)
         {
-            var name = latestChange.GetType().Name;
-
-            switch (name)
+            switch (latestChange.Name)
             {
                 case EntityName.Customer:
                     var layout = CustomerCollection.First(customer => customer.Id.Equals(latestChange.Id));
@@ -152,11 +156,9 @@ namespace Models.Infrastructure
             }
         }
 
-        internal bool MarkAsReady(Customer workingCopy)
+        internal bool MarkAsReady(ISubmittedEntity workingCopy)
         {
-            var name = workingCopy.GetType().Name;
-
-            switch (name)
+            switch (workingCopy.Name)
             {
                 case EntityName.Customer:
                     var layout = CustomerCollection.First(item => item.Id.Equals(workingCopy.Id));
@@ -170,11 +172,9 @@ namespace Models.Infrastructure
             return true;
         }
 
-        internal void DiscardWorkingCopy(Customer workingCopy)
+        internal void DiscardWorkingCopy(ISubmittedEntity workingCopy)
         {
-            var name = workingCopy.GetType().Name;
-
-            switch (name)
+            switch (workingCopy.Name)
             {
                 case EntityName.Customer:
                     var layout = CustomerCollection.First(item => item.Id.Equals(workingCopy.Id));

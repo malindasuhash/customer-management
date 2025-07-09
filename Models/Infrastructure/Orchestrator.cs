@@ -56,7 +56,7 @@ namespace Models.Infrastructure
 
         internal void OnNotify(Result result)
         {
-            var workingCopy = Database.Instance.GetWorkingCopy(result.Id, result.Version);
+            var workingCopy = Database.Instance.GetWorkingCopy(result.Id, result.Version, result.EntityName);
 
             if (result.Workflow == Workflow.Evaluation && result.NextAction == NextAction.Apply)
             {
@@ -105,5 +105,10 @@ namespace Models.Infrastructure
             }
         }
 
+        internal void Evaluate(Result result)
+        {
+            // Trigger the evaluation workflow based on the result
+            throw new NotImplementedException();
+        }
     }
 }

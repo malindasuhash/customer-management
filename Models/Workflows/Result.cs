@@ -13,20 +13,28 @@ namespace Models.Workflows
         public bool Success { get; }
         public Workflow Workflow { get; }
         public NextAction NextAction { get; }
+        public string EntityName { get; }
 
-        public static Result EvaluationSuccess(string id, int version) => new(id, version, true, Workflow.Evaluation, NextAction.Apply);
+        public static Result EvaluationSuccess(string id, int version, string entityName) => new(id, version, true, Workflow.Evaluation, NextAction.Apply, entityName);
 
-        public static Result EvaluationFailed(string id, int version) => new(id, version, false, Workflow.Evaluation, NextAction.None);
+        public static Result EvaluationFailed(string id, int version, string entityName) => new(id, version, false, Workflow.Evaluation, NextAction.None, entityName);
 
-        public static Result ApplySuccess(string id, int version) => new(id, version, true, Workflow.Apply, NextAction.None);
+        public static Result ApplySuccess(string id, int version, string entityName) => new(id, version, true, Workflow.Apply, NextAction.None, entityName);
 
-        private Result(string id, int version, bool success, Workflow workflow, NextAction nextAction)
+        internal static Result RequireEvaluation(string customerId, string entityName)
+        {
+            var result = new Result(customerId, 0, false, Workflow.Evaluation, NextAction.RequireEvaluation, entityName);
+            return result;
+        }
+
+        private Result(string id, int version, bool success, Workflow workflow, NextAction nextAction, string entityName = null)
         {
             Id = id;
             Version = version;
             Success = success;
             Workflow = workflow;
             NextAction = nextAction;
+            EntityName = entityName;
         }
     }
 
@@ -42,6 +50,7 @@ namespace Models.Workflows
         None,
         Apply,
         RequireInput,
+        RequireEvaluation,
         Failed
     }
 }
