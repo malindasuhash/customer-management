@@ -41,7 +41,11 @@ namespace Models.Infrastructure
             if (eventInfo is EntitySubmitted submitted)
             {
                 // Orchestrator is a special case, it handles the event directly
-                Orchestrator.Instance.EntitySubmitted(submitted.EntityId, submitted.EntityName, submitted.Version);
+                Task.Run(() =>
+                {
+                    Orchestrator.Instance.EntitySubmitted(submitted.EntityId, submitted.EntityName, submitted.Version);
+                });
+
                 return;
             }
 

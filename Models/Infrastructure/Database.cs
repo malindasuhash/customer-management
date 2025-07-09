@@ -131,10 +131,10 @@ namespace Models.Infrastructure
             switch (entityName)
             {
                 case EntityName.Customer:
-                    return CustomerCollection.FirstOrDefault(customer => customer.Id.Equals(id, StringComparison.Ordinal))?.WorkingCopy.First();
+                    return CustomerCollection.FirstOrDefault(customer => customer.Id.Equals(id, StringComparison.Ordinal))?.WorkingCopy?.FirstOrDefault();
 
                 case EntityName.LegalEntity:
-                    return LegalEntityCollection.FirstOrDefault(legalEntity => legalEntity.Id.Equals(id, StringComparison.Ordinal))?.WorkingCopy.First();
+                    return LegalEntityCollection.FirstOrDefault(legalEntity => legalEntity.Id.Equals(id, StringComparison.Ordinal))?.WorkingCopy?.FirstOrDefault();
             }
 
             return null;
@@ -182,7 +182,7 @@ namespace Models.Infrastructure
                     break;
 
                 case EntityName.LegalEntity:
-                    var legalEntityLayout = CustomerCollection.First(item => item.Id.Equals(workingCopy.Id));
+                    var legalEntityLayout = LegalEntityCollection.First(item => item.Id.Equals(workingCopy.Id));
                     legalEntityLayout.RemoveFromWorkingCopy(workingCopy);
                     break;
             }

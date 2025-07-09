@@ -27,7 +27,9 @@ namespace Models.Workflows
             {
                 // Notify Orchestrator that the Customer is not ready.
                 EventAggregator.Log($"<red> [TOUCH] Customer '{workingLegalEntity.CustomerId}' is not ready; require evaluation.");
-                Orchestrator.Instance.Touch(Result.Evaluate(workingLegalEntity.CustomerId, EntityName.Customer));
+                Orchestrator.Instance.Touch(
+                    Result.Evaluate(workingLegalEntity.CustomerId, EntityName.Customer),
+                    Result.EvaluationFailed(legalEntityEvent.LegalEntityId, legalEntityEvent.Version, EntityName.LegalEntity));
                 return;
             }
 
