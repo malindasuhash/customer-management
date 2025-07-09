@@ -14,7 +14,7 @@ namespace Models.Infrastructure
             var currentState = entity.State;
             entity.State = GetNextState(entity.State, success);
 
-            EventAggregator.Log("State change: from:'{0}' to '{1}', Entity Id: '{2}'", currentState, entity.State, entity.Id);
+            EventAggregator.Log("'{3}' State change: from:'{0}' to '{1}', Entity Id: '{2}'", currentState, entity.State, entity.Id, entity.Name);
         }
 
         private string GetNextState(string currentState, bool success = true)

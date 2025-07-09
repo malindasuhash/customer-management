@@ -24,7 +24,7 @@ namespace Service
                 EventAggregator.Log("Processing submission");
 
                 // TODO: I think I need to deep clone entire object hirarchy 
-                var draftEntities = Database.Instance.GetDraftEntitiesFor(clientEntity.Id); // Customer is special. 
+                var draftEntities = Database.Instance.GetDraftEntitiesFor(clientEntity.Id, clientEntity.Name); 
 
                 foreach (var draftEntity in draftEntities)
                 {

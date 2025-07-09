@@ -5,11 +5,11 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Models.Workflows
+namespace Models.Workflows.Events
 {
-    internal class CustomerApplyCompleteEvent : IEventInfo
+    internal class CustomerEvaluationCompleteEvent : IEventInfo
     {
-        public string EventName => nameof(CustomerApplyCompleteEvent);
+        public string EventName => nameof(CustomerEvaluationCompleteEvent);
 
         public string CustomerId { get; }
 
@@ -17,7 +17,7 @@ namespace Models.Workflows
 
         public bool Success { get; }
 
-        public CustomerApplyCompleteEvent(string customerId, int version, bool success)
+        public CustomerEvaluationCompleteEvent(string customerId, int version, bool success)
         {
             CustomerId = customerId;
             Version = version;

@@ -21,8 +21,8 @@ do
     Console.WriteLine("4. Submit customer");
     Console.WriteLine("5. Get customer");
     Console.WriteLine();
-    Console.WriteLine("6. Add new legal entity (attach to latest customer)");
-    Console.WriteLine("7. Add new legal entity and submit (attach to latest customer)");
+    Console.WriteLine("6. Add new legal entity");
+    Console.WriteLine("7. Add new legal entity and submit");
     Console.WriteLine("8. Update legal entity");
     Console.WriteLine("9. Submit legal entity");
     Console.WriteLine();
@@ -69,6 +69,11 @@ do
         case "6":
             var i = GetIndex();
             app.AddLegalEntity(i, new LegalEntityClient { LegalName = "Cambridge Bakery" });
+            break;
+
+        case "7":
+            var legalEntitySubmitCustomerIndex = GetIndex();
+            app.AddLegalEntity(legalEntitySubmitCustomerIndex, new LegalEntityClient { LegalName = "Watford Bakery" }, true);
             break;
 
         case "a":

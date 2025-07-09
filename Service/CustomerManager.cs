@@ -1,4 +1,5 @@
 ﻿using Models;
+using Models.Contract;
 using Models.Infrastructure;
 using System;
 using System.Collections.Generic;
@@ -52,6 +53,21 @@ namespace Service
                 EventAggregator.Log("SubmittedCopy:'{0}'", customer.LastestSubmittedCopy == null ? string.Empty : customer.LastestSubmittedCopy.ToString());
                 EventAggregator.Log("WorkingCopy:'{0}'", customer.WorkingCopy == null ? string.Empty : DoFormat(customer.WorkingCopy));
                 EventAggregator.Log("ReadyCopy:'{0}'", customer.ReadyCopy == null ? string.Empty : customer.ReadyCopy.ToString());
+                EventAggregator.Log("<...RECORD END....>");
+            }
+
+            var leglEntities = Database.Instance.LegalEntityCollection;
+
+            EventAggregator.Log("Legal Entities");
+            EventAggregator.Log("--------------");
+            foreach (var legalEntity in leglEntities)
+            {
+                EventAggregator.Log("<...RECORD START....>");
+                EventAggregator.Log("Id:{0}", legalEntity.Id);
+                EventAggregator.Log("ClientCopy:'{0}'", legalEntity.ClientCopy == null ? string.Empty : legalEntity.ClientCopy.ToString());
+                EventAggregator.Log("SubmittedCopy:'{0}'", legalEntity.LastestSubmittedCopy == null ? string.Empty : legalEntity.LastestSubmittedCopy.ToString());
+                //EventAggregator.Log("WorkingCopy:'{0}'", legalEntity.WorkingCopy == null ? string.Empty : DoFormat(legalEntity.WorkingCopy));
+                EventAggregator.Log("ReadyCopy:'{0}'", legalEntity.ReadyCopy == null ? string.Empty : legalEntity.ReadyCopy.ToString());
                 EventAggregator.Log("<...RECORD END....>");
             }
         }

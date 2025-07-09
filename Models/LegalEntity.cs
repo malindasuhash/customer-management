@@ -25,7 +25,24 @@ namespace Models
 
         public object Clone()
         {
-            throw new NotImplementedException();
+            return new LegalEntity
+            {
+                Id = Id,
+                CustomerId = CustomerId,
+                State = State,
+                LegalName = LegalName
+            };
+        }
+
+        public override string ToString()
+        {
+            return string.Format("Id:'{0}', " +
+                "CustomerId:'{1}', " +
+                "State:'{2}', " +
+                "LegalName:'{3}', " +
+                "DraftVersion: '{4}', " +
+                "SubmittedVersion:'{5}'",
+                Id, CustomerId, State, LegalName, DraftVersion, LastSubmittedVersion);
         }
     }
     public class LegalEntity : LegalEntityBase, ISubmittedEntity, IVersionable

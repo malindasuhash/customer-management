@@ -1,5 +1,6 @@
 ﻿using Models.Infrastructure.Events;
 using Models.Workflows;
+using Models.Workflows.Events;
 using System;
 using System.Collections.Generic;
 using System.IO.Pipes;

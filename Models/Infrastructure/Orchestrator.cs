@@ -46,12 +46,11 @@ namespace Models.Infrastructure
 
                 // Kick off the workflow for this entity
 
-                // TODO: This is where the access to customer may need to be serialised
-                var latestCustomerChange = Database.Instance.GetLatestSubmittedEntity(entityId, entityName, version);
-                _entityManager.Transition(latestCustomerChange);
+                var latestEntityChange = Database.Instance.GetLatestSubmittedEntity(entityId, entityName, version);
+                _entityManager.Transition(latestEntityChange);
 
                 // TODO: Should I let concurrent changes to the same entity to follow through?
-                _outbox.Evaluate(latestCustomerChange);
+                _outbox.Evaluate(latestEntityChange);
             }
         }
 

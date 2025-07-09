@@ -25,7 +25,7 @@ namespace Models.Infrastructure
 
         public void AddToClientCopy(IClientEntity clientEntity)
         {
-            var name = clientEntity.GetType().Name.Replace("Client", string.Empty);
+            var name = clientEntity.Name.Replace("Client", string.Empty);
 
             switch (name)
             {
@@ -43,7 +43,7 @@ namespace Models.Infrastructure
 
         public void UpdateClientCopy(IClientEntity clientEntity)
         {
-            var name = clientEntity.GetType().Name.Replace("Client", string.Empty);
+            var name = clientEntity.Name.Replace("Client", string.Empty);
 
             switch (name)
             {
@@ -61,32 +61,42 @@ namespace Models.Infrastructure
             EventAggregator.Log("Client Entity:'{0}' with Id:'{1}' Updated", name, clientEntity.Id);
         }
 
-        public List<IClientEntity> GetDraftEntitiesFor(string id)
+        public List<IClientEntity> GetDraftEntitiesFor(string entityId, string entityName)
         {
             // TODO: Build up entire object hirarchy
             // For now, just return the latest draft version of Customer and LegalEntity
-            var latestCustomer = CustomerCollection
-                .Where(client => client.Id == id && client.ClientCopy.State.Equals(EntityState.Draft))
-                .Select(a => (IClientEntity)a.ClientCopy)
-                .First();
+            List<IClientEntity> draftEntities = new();
 
-            var latestLegalEntity = LegalEntityCollection
-                .Where(client => client.Id == id && client.ClientCopy.State.Equals(EntityState.Draft))
-                .Select(a => (IClientEntity)a.ClientCopy)
-                .First();
-
-            return new List<IClientEntity> 
+            // Customer is special, for now when it is changed, then I will process just that entity.
+            if (EntityName.Customer.Equals(entityName, StringComparison.OrdinalIgnoreCase))
             {
-                latestCustomer, 
-                latestLegalEntity 
-            };
+                draftEntities.Add(CustomerCollection
+                   .Where(client => client.Id == entityId && client.ClientCopy.State.Equals(EntityState.Draft))
+                   .Select(a => (IClientEntity)a.ClientCopy)
+                   .First());
+            }
+
+            // When the change is related to LegalEntity then I can find both CustomerId and LegalEntityId.
+            if (EntityName.LegalEntity.Equals(entityName, StringComparison.OrdinalIgnoreCase))
+            {
+                var legalEntity = (LegalEntityClient)LegalEntityCollection
+                    .Where(client => client.Id == entityId && client.ClientCopy.State.Equals(EntityState.Draft))
+                    .Select(a => (IClientEntity)a.ClientCopy)
+                    .First();
+                draftEntities.Add(legalEntity);
+
+                draftEntities.Add(CustomerCollection
+                    .Where(client => client.Id == legalEntity.CustomerId && client.ClientCopy.State.Equals(EntityState.Draft))
+                    .Select(a => (IClientEntity)a.ClientCopy)
+                    .First());
+            }
+
+            return draftEntities;
         }
 
         internal void AddToSubmittedCopy(ISubmittedEntity entitytoSubmit)
         {
-            var name = entitytoSubmit.GetType().Name;
-
-            switch (name)
+            switch (entitytoSubmit.Name)
             {
                 case EntityName.Customer:
                     var layout = CustomerCollection.First(customer => customer.Id.Equals(entitytoSubmit.Id));
@@ -99,16 +109,21 @@ namespace Models.Infrastructure
                     break;
             }
 
-            EventAggregator.Log("Submitted Entity:'{0}' with Id:'{1}' Added", name, entitytoSubmit.Id);
+            EventAggregator.Log("Submitted Entity:'{0}' with Id:'{1}' Added", entitytoSubmit.Name, entitytoSubmit.Id);
         }
 
-        internal Customer GetLatestSubmittedEntity(string customerId, string entityName, int version)
+        internal ISubmittedEntity? GetLatestSubmittedEntity(string entityId, string entityName, int version)
         {
-            var latestChange = CustomerCollection
-                .First(customer => customer.Id.Equals(customerId))
-                .LastestSubmittedCopy;
+            switch (entityName)
+            {
+                case EntityName.Customer:
+                    return CustomerCollection.FirstOrDefault(customer => customer.Id.Equals(entityId, StringComparison.Ordinal))?.LastestSubmittedCopy;
 
-            return latestChange;
+                case EntityName.LegalEntity:
+                    return LegalEntityCollection.FirstOrDefault(legalEntity => legalEntity.Id.Equals(entityId, StringComparison.Ordinal))?.LastestSubmittedCopy;
+            }
+
+            return null;
         }
 
         internal Customer GetWorkingCopy(string id, int version)
@@ -119,7 +134,7 @@ namespace Models.Infrastructure
             return workingCopy;
         }
 
-        internal void MarkAsWorkingCopy(Customer latestChange)
+        internal void MarkAsWorkingCopy(ISubmittedEntity latestChange)
         {
             var name = latestChange.GetType().Name;
 

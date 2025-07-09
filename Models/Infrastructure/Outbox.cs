@@ -1,6 +1,7 @@
 ﻿using Models.Contract;
 using Models.Infrastructure.Events;
 using Models.Workflows;
+using Models.Workflows.Events;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -27,12 +28,12 @@ namespace Models.Infrastructure
             Database.Instance.AddToSubmittedCopy(submittedEntity);
         }
 
-        internal void Evaluate(Customer latestCustomerChange)
+        internal void Evaluate(ISubmittedEntity latestEntityChange)
         {
-            Database.Instance.MarkAsWorkingCopy(latestCustomerChange);
+            Database.Instance.MarkAsWorkingCopy(latestEntityChange);
 
             // Trigger event
-            EventAggregator.Publish(latestCustomerChange.GetChangedEvent());
+            EventAggregator.Publish(latestEntityChange.GetChangedEvent());
         }
 
         internal void Apply(Customer workingCopy)
