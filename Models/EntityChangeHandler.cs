@@ -7,14 +7,14 @@ using Models.Infrastructure;
 using Models.Infrastructure.Events;
 using Models.Contract;
 
-namespace Service
+namespace Models
 {
-    internal class EntityChangeHandler
+    public class EntityChangeHandler
     {
         private readonly Outbox _outbox = new();
         private readonly EntityManager _entityManager = new();
 
-        internal void Change(IClientEntity clientEntity, bool submit)
+        public void Change(IClientEntity clientEntity, bool submit)
         {
             UpdateClientCopy(clientEntity);
 
@@ -32,16 +32,6 @@ namespace Service
                     var entitytoSubmit = (ISubmittedEntity)draftEntity.Clone();
                     _entityManager.Transition(entitytoSubmit);
 
-                    // In this case, entity is copied to submitted but change event is not raised.
-                    if (draftEntity.DraftVersion == draftEntity.LastSubmittedVersion)
-                    {
-                        EventAggregator.Log("No change detected for Entity:'{0}' with Id:'{1}'", "EntityName", draftEntity.Id);
-
-                        // But the entity needs to be copied to latest submitted state; but no event is raised.
-                        _outbox.SubmittedCopy(entitytoSubmit);
-                        return;
-                    }
-
                     // Latest draft is marked for submission
                     draftEntity.LastSubmittedVersion = draftEntity.DraftVersion;
                     entitytoSubmit.SubmittedVersion = draftEntity.LastSubmittedVersion;
@@ -58,7 +48,6 @@ namespace Service
                     if (clientEntity.Id != draftEntity.Id) return;
 
                     EventAggregator.Publish(new EntitySubmitted(entitytoSubmit.Id, entitytoSubmit.Name, entitytoSubmit.SubmittedVersion));
-
                 }
             }
         }

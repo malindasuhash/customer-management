@@ -70,8 +70,12 @@ namespace Models.Infrastructure
         {
             _typeMappings = new Dictionary<Type, Type>()
             {
+                // Customr Events
                 {  typeof(CustomerChanged), typeof(CustomerEvaluationWorkflow) },
                 {  typeof(CustomerEvaluationCompleteEvent), typeof(CustomerApplyWorkflow) },
+                {  typeof(CustomerSynchonised), typeof(CustomerPostApplyWorkflow) },
+
+                // Legal Entity Events
                 {  typeof(LegalEntityChanged), typeof(LegalEntityEvaluationWorkflow) },
             };
 

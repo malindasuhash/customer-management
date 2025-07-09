@@ -21,7 +21,7 @@ namespace Models.Workflows
 
         public static Result ApplySuccess(string id, int version, string entityName) => new(id, version, true, Workflow.Apply, NextAction.None, entityName);
 
-        internal static Result RequireEvaluation(string customerId, string entityName)
+        internal static Result Evaluate(string customerId, string entityName)
         {
             var result = new Result(customerId, 0, false, Workflow.Evaluation, NextAction.RequireEvaluation, entityName);
             return result;

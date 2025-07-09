@@ -1,6 +1,7 @@
 ﻿using Models.Contract;
 using Models.Infrastructure.Events;
 using Models.Workflows;
+using Models.Workflows.Events;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -21,6 +22,7 @@ namespace Models.Infrastructure
 
         private readonly EntityManager _entityManager = new();
         private readonly Outbox _outbox = new();
+        private readonly EntityChangeHandler _entityChangeHandler = new();
 
         private static string GenerateLockKey(string entityId, string entityName) => $"EntityLock_{entityId}_{entityName}";
 
@@ -90,6 +92,9 @@ namespace Models.Infrastructure
 
                 _entityManager.Transition(workingCopy);
                 _outbox.Apply(workingCopy);
+                
+            
+                
                 return;
             } 
 
@@ -106,15 +111,21 @@ namespace Models.Infrastructure
             }
         }
 
-        internal void Evaluate(Result result)
+        internal void Touch(Result result)
         {
             // Trigger the evaluation workflow based on the result
             switch (result.EntityName)
             {
                 case EntityName.Customer:
-                    var latestCustomerDraft = Database.Instance.CustomerCollection.First(c => c.Id.Equals(result.Id)).LastestSubmittedCopy;
-                    
-                    EventAggregator.Publish(new EntitySubmitted(result.Id, result.EntityName, latestCustomerDraft.SubmittedVersion));
+                    var latestDraftCustomer = Database.Instance.CustomerCollection.First(c => c.Id.Equals(result.Id)).ClientCopy;
+
+                    _entityChangeHandler.Change(latestDraftCustomer, true);
+                    break;
+
+                case EntityName.LegalEntity:
+                    var latestDraftLegalEntity = Database.Instance.LegalEntityCollection.First(c => c.Id.Equals(result.Id)).ClientCopy;
+
+                    _entityChangeHandler.Change(latestDraftLegalEntity, true);
                     break;
             }
         }

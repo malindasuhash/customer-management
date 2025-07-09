@@ -26,7 +26,9 @@ namespace Models.Workflows
             if (customer.ReadyCopy == null)
             {
                 // Notify Orchestrator that the Customer is not ready.
-                Orchestrator.Instance.Evaluate(Result.RequireEvaluation(workingLegalEntity.CustomerId, EntityName.Customer));
+                EventAggregator.Log($"<red> [TOUCH] Customer '{workingLegalEntity.CustomerId}' is not ready; require evaluation.");
+                Orchestrator.Instance.Touch(Result.Evaluate(workingLegalEntity.CustomerId, EntityName.Customer));
+                return;
             }
 
             EventAggregator.Log("<magenta> END: LegalEntityEvaluationWorkflow - LegalEntity Id:'{0}', Version:{1}", legalEntityEvent.LegalEntityId, legalEntityEvent.Version);

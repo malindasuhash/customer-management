@@ -131,10 +131,10 @@ namespace Models.Infrastructure
             switch (entityName)
             {
                 case EntityName.Customer:
-                    return CustomerCollection.FirstOrDefault(customer => customer.Id.Equals(id, StringComparison.Ordinal))?.LastestSubmittedCopy;
+                    return CustomerCollection.FirstOrDefault(customer => customer.Id.Equals(id, StringComparison.Ordinal))?.WorkingCopy.First();
 
                 case EntityName.LegalEntity:
-                    return LegalEntityCollection.FirstOrDefault(legalEntity => legalEntity.Id.Equals(id, StringComparison.Ordinal))?.LastestSubmittedCopy;
+                    return LegalEntityCollection.FirstOrDefault(legalEntity => legalEntity.Id.Equals(id, StringComparison.Ordinal))?.WorkingCopy.First();
             }
 
             return null;

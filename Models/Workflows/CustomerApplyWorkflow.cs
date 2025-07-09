@@ -15,7 +15,7 @@ namespace Models.Workflows
         {
             var customerEvent = (CustomerEvaluationCompleteEvent)eventInfo;
 
-            EventAggregator.Log("START: CustomerApplyWorkflow - Customer Id:'{0}', Version:{1}", customerEvent.CustomerId, customerEvent.Version);
+            EventAggregator.Log("<magenta> START: CustomerApplyWorkflow - Customer Id:'{0}', Version:{1}", customerEvent.CustomerId, customerEvent.Version);
 
             var workingCopy = Database.Instance.CustomerCollection.First(entry => entry.Id.Equals(customerEvent.CustomerId)).WorkingCopy.First(ver => ver.SubmittedVersion == eventInfo.Version);
 
@@ -24,7 +24,7 @@ namespace Models.Workflows
             // Notify Orchestrator
             Orchestrator.Instance.OnNotify(Result.ApplySuccess(workingCopy.Id, workingCopy.SubmittedVersion, workingCopy.Name));
 
-            EventAggregator.Log("END: CustomerApplyWorkflow - Customer Id:'{0}', Version: {1}", customerEvent.CustomerId, customerEvent.Version);
+            EventAggregator.Log("<magenta> END: CustomerApplyWorkflow - Customer Id:'{0}', Version: {1}", customerEvent.CustomerId, customerEvent.Version);
         }
     }
 }

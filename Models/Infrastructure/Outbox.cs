@@ -42,6 +42,7 @@ namespace Models.Infrastructure
 
             // Trigger event
             EventAggregator.Publish(new CustomerEvaluationCompleteEvent(workingCopy.Id, workingCopy.SubmittedVersion, true));
+
         }
 
         internal void Ready(ISubmittedEntity workingCopy)
