@@ -29,6 +29,7 @@ namespace Models.Workflows
                 Orchestrator.Instance.Evaluate(Result.RequireEvaluation(workingLegalEntity.CustomerId, EntityName.Customer));
             }
 
+            EventAggregator.Log("<magenta> END: LegalEntityEvaluationWorkflow - LegalEntity Id:'{0}', Version:{1}", legalEntityEvent.LegalEntityId, legalEntityEvent.Version);
         }
     }
 }

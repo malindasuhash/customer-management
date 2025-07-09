@@ -1,4 +1,5 @@
-﻿using Models.Infrastructure.Events;
+﻿using Models.Contract;
+using Models.Infrastructure.Events;
 using Models.Workflows;
 using System;
 using System.Collections.Concurrent;
@@ -108,7 +109,14 @@ namespace Models.Infrastructure
         internal void Evaluate(Result result)
         {
             // Trigger the evaluation workflow based on the result
-            throw new NotImplementedException();
+            switch (result.EntityName)
+            {
+                case EntityName.Customer:
+                    var latestCustomerDraft = Database.Instance.CustomerCollection.First(c => c.Id.Equals(result.Id)).LastestSubmittedCopy;
+                    
+                    EventAggregator.Publish(new EntitySubmitted(result.Id, result.EntityName, latestCustomerDraft.SubmittedVersion));
+                    break;
+            }
         }
     }
 }

@@ -16,7 +16,7 @@ namespace Service
 
         internal void Change(IClientEntity clientEntity, bool submit)
         {
-            UpdateClientCopy(clientEntity);                     
+            UpdateClientCopy(clientEntity);
 
             // Submit for processing 
             if (submit)
@@ -24,7 +24,7 @@ namespace Service
                 EventAggregator.Log("Processing submission");
 
                 // TODO: I think I need to deep clone entire object hirarchy 
-                var draftEntities = Database.Instance.GetDraftEntitiesFor(clientEntity.Id, clientEntity.Name); 
+                var draftEntities = Database.Instance.GetDraftEntitiesFor(clientEntity.Id, clientEntity.Name);
 
                 foreach (var draftEntity in draftEntities)
                 {
@@ -45,7 +45,7 @@ namespace Service
                     // Latest draft is marked for submission
                     draftEntity.LastSubmittedVersion = draftEntity.DraftVersion;
                     entitytoSubmit.SubmittedVersion = draftEntity.LastSubmittedVersion;
-                    
+
                     // Perhaps an update to reflect new LastSubmittedVersion in client copy in case of a 
                     // proper database implementation.
 
@@ -54,7 +54,11 @@ namespace Service
 
                     EventAggregator.Log("Entity cloned & submitting, \n Draft: [{0}], \n Submitted: [{1}]", draftEntity, entitytoSubmit);
 
+                    // Notify the event aggregator that the entity has been submitted, But only if the Ids match.
+                    if (clientEntity.Id != draftEntity.Id) return;
+
                     EventAggregator.Publish(new EntitySubmitted(entitytoSubmit.Id, entitytoSubmit.Name, entitytoSubmit.SubmittedVersion));
+
                 }
             }
         }
