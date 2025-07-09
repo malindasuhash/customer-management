@@ -14,7 +14,7 @@ namespace Models
         public string Id { get; set; }
         public string EmailAddress { get; set; }
         public string State { get; set; }
-        public string Name => EnityName.Customer;
+        public string Name => EntityName.Customer;
     }
 
     public class Customer : CustomerBase, ISubmittedEntity, IVersionable

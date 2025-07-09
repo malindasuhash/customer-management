@@ -13,7 +13,7 @@ namespace Models
         public string Id { get; set; }
         public string CustomerId { get; set; }
         public string State { get; set; }
-        public string Name => EnityName.LegalEntity;
+        public string Name => EntityName.LegalEntity;
         public string LegalName { get; set; }
     }
 

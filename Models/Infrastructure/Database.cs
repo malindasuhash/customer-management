@@ -16,9 +16,12 @@ namespace Models.Infrastructure
         private Database()
         {
             CustomerCollection = new List<EntityLayout<Customer, CustomerClient>>();
+            LegalEntityCollection = new List<EntityLayout<LegalEntity, LegalEntityClient>>();
         }
 
         public IList<EntityLayout<Customer, CustomerClient>> CustomerCollection { get; private set; }
+
+        public IList<EntityLayout<LegalEntity, LegalEntityClient>> LegalEntityCollection { get; private set; }
 
         public void AddToClientCopy(IClientEntity clientEntity)
         {
@@ -26,8 +29,12 @@ namespace Models.Infrastructure
 
             switch (name)
             {
-                case "Customer":
+                case EntityName.Customer:
                     CustomerCollection.Add(new EntityLayout<Customer, CustomerClient> { Id = clientEntity.Id, ClientCopy = (CustomerClient)clientEntity });
+                    break;
+
+                case EntityName.LegalEntity:
+                    LegalEntityCollection.Add(new EntityLayout<LegalEntity, LegalEntityClient> { Id = clientEntity.Id, ClientCopy = (LegalEntityClient)clientEntity });
                     break;
             }
 
@@ -40,9 +47,14 @@ namespace Models.Infrastructure
 
             switch (name)
             {
-                case "Customer":
+                case EntityName.Customer:
                     var layout = CustomerCollection.First(customer => customer.Id.Equals(clientEntity.Id));
                     layout.ClientCopy = (CustomerClient)clientEntity;
+                    break;
+
+                case EntityName.LegalEntity:
+                    var legalEntityLayout = LegalEntityCollection.First(legalEntity => legalEntity.Id.Equals(clientEntity.Id));
+                    legalEntityLayout.ClientCopy = (LegalEntityClient)clientEntity;
                     break;
             }
 
@@ -52,10 +64,22 @@ namespace Models.Infrastructure
         public List<IClientEntity> GetDraftEntitiesFor(string id)
         {
             // TODO: Build up entire object hirarchy
-            return CustomerCollection
+            // For now, just return the latest draft version of Customer and LegalEntity
+            var latestCustomer = CustomerCollection
                 .Where(client => client.Id == id && client.ClientCopy.State.Equals(EntityState.Draft))
                 .Select(a => (IClientEntity)a.ClientCopy)
-                .ToList(); // Run now
+                .First();
+
+            var latestLegalEntity = LegalEntityCollection
+                .Where(client => client.Id == id && client.ClientCopy.State.Equals(EntityState.Draft))
+                .Select(a => (IClientEntity)a.ClientCopy)
+                .First();
+
+            return new List<IClientEntity> 
+            {
+                latestCustomer, 
+                latestLegalEntity 
+            };
         }
 
         internal void AddToSubmittedCopy(ISubmittedEntity entitytoSubmit)
@@ -64,16 +88,21 @@ namespace Models.Infrastructure
 
             switch (name)
             {
-                case "Customer":
+                case EntityName.Customer:
                     var layout = CustomerCollection.First(customer => customer.Id.Equals(entitytoSubmit.Id));
                     layout.SetLatestSubmittedCopy(entitytoSubmit);
+                    break;
+
+                case EntityName.LegalEntity:
+                    var legalEntityLayout = LegalEntityCollection.First(legalEntity => legalEntity.Id.Equals(entitytoSubmit.Id));
+                    legalEntityLayout.SetLatestSubmittedCopy(entitytoSubmit);
                     break;
             }
 
             EventAggregator.Log("Submitted Entity:'{0}' with Id:'{1}' Added", name, entitytoSubmit.Id);
         }
 
-        internal Customer GetLatestSubmittedCustomer(string customerId)
+        internal Customer GetLatestSubmittedEntity(string customerId, string entityName, int version)
         {
             var latestChange = CustomerCollection
                 .First(customer => customer.Id.Equals(customerId))
@@ -90,15 +119,20 @@ namespace Models.Infrastructure
             return workingCopy;
         }
 
-        internal void MarkAsWorkingCopy(Customer latestCustomerChange)
+        internal void MarkAsWorkingCopy(Customer latestChange)
         {
-            var name = latestCustomerChange.GetType().Name;
+            var name = latestChange.GetType().Name;
 
             switch (name)
             {
-                case "Customer":
-                    var layout = CustomerCollection.First(customer => customer.Id.Equals(latestCustomerChange.Id));
-                    layout.MoveFromSubmittedCopyToWorkingCopy(latestCustomerChange);
+                case EntityName.Customer:
+                    var layout = CustomerCollection.First(customer => customer.Id.Equals(latestChange.Id));
+                    layout.MoveFromSubmittedCopyToWorkingCopy(latestChange);
+                    break;
+
+                case EntityName.LegalEntity:
+                    var legalEntityLayout = LegalEntityCollection.First(legalEnity => legalEnity.Id.Equals(latestChange.Id));
+                    legalEntityLayout.MoveFromSubmittedCopyToWorkingCopy(latestChange);
                     break;
             }
         }
@@ -109,9 +143,13 @@ namespace Models.Infrastructure
 
             switch (name)
             {
-                case "Customer":
+                case EntityName.Customer:
                     var layout = CustomerCollection.First(item => item.Id.Equals(workingCopy.Id));
                     return layout.TryMoveFromWorkingCopyToReadyCopy(workingCopy);
+
+                case EntityName.LegalEntity:
+                    var legalEntityLayout = LegalEntityCollection.First(item => item.Id.Equals(workingCopy.Id));
+                    return legalEntityLayout.TryMoveFromWorkingCopyToReadyCopy(workingCopy);
             }
 
             return true;
@@ -123,9 +161,14 @@ namespace Models.Infrastructure
 
             switch (name)
             {
-                case "Customer":
+                case EntityName.Customer:
                     var layout = CustomerCollection.First(item => item.Id.Equals(workingCopy.Id));
                     layout.RemoveFromWorkingCopy(workingCopy);
+                    break;
+
+                case EntityName.LegalEntity:
+                    var legalEntityLayout = CustomerCollection.First(item => item.Id.Equals(workingCopy.Id));
+                    legalEntityLayout.RemoveFromWorkingCopy(workingCopy);
                     break;
             }
         }
@@ -202,20 +245,21 @@ namespace Models.Infrastructure
                 }
             }
 
-            lock (this) {
+            lock (this)
+            {
 
                 if (ReadyCopy != null)
                 {
                     var changeVersion = ((ISubmittedEntity)entity).SubmittedVersion;
                     var readyCopyVersion = ((ISubmittedEntity)ReadyCopy).SubmittedVersion;
-                    
+
                     if (readyCopyVersion > changeVersion)
                     {
                         // Ready copy is higer than change copy.
                         return false;
                     }
                 }
-                
+
                 ReadyCopy = (T)entity;
                 WorkingCopy.RemoveAt(itemAtIndex);
             }
