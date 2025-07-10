@@ -23,9 +23,16 @@ namespace Models.Infrastructure
             Database.Instance.UpdateClientCopy(clientEntity);
         }
 
-        public void SubmittedCopy(ISubmittedEntity submittedEntity)
+        public void JustSubmit(ISubmittedEntity submittedEntity)
         {
             Database.Instance.AddToSubmittedCopy(submittedEntity);
+        }
+
+        public void Submit(ISubmittedEntity submittedEntity)
+        {
+            Database.Instance.AddToSubmittedCopy(submittedEntity);
+
+            EventAggregator.Publish(new EntitySubmitted(submittedEntity.Id, submittedEntity.Name, submittedEntity.SubmittedVersion));
         }
 
         internal void Evaluate(ISubmittedEntity latestEntityChange)
@@ -80,6 +87,11 @@ namespace Models.Infrastructure
         internal void DiscardWorkingCopy(ISubmittedEntity workingCopy)
         {
             Database.Instance.DiscardWorkingCopy(workingCopy);
+        }
+
+        internal void MoveFromSubmittedToWorking(ISubmittedEntity submittedEntity)
+        {
+            Database.Instance.MarkAsWorkingCopy(submittedEntity);
         }
     }
 }

@@ -43,7 +43,8 @@ namespace Models.Infrastructure
                 // Orchestrator is a special case, it handles the event directly
                 Task.Run(() =>
                 {
-                    Orchestrator.Instance.EntitySubmitted(submitted.EntityId, submitted.EntityName, submitted.Version);
+                    Orchestrator.Instance.EntitySubmittedEx(submitted.EntityId, submitted.EntityName, submitted.Version);   
+                   // Orchestrator.Instance.EntitySubmitted(submitted.EntityId, submitted.EntityName, submitted.Version);
                 });
 
                 return;

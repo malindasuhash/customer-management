@@ -6,6 +6,7 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Text;
 using System.Threading.Tasks;
+using System.Xml.Linq;
 
 namespace Models.Infrastructure
 {
@@ -94,6 +95,41 @@ namespace Models.Infrastructure
             return draftEntities;
         }
 
+        public IList<IClientEntity> GetLatestDraft(string entityId, string entityName)
+        {
+            var latestDraft = new List<IClientEntity>();
+            IClientEntity? customer = null;
+
+            if (EntityName.LegalEntity.Equals(entityName, StringComparison.OrdinalIgnoreCase))
+            {
+                var legalEntity = LegalEntityCollection
+                    .Where(client => client.Id == entityId && client.ClientCopy.State.Equals(EntityState.Draft))
+                    .Select(a => (IClientEntity)a.ClientCopy)
+                    .FirstOrDefault();
+
+                latestDraft.Add(legalEntity);
+
+                customer = CustomerCollection
+                    .Where(client => client.Id == ((LegalEntityClient)legalEntity).CustomerId && client.ClientCopy.State.Equals(EntityState.Draft))
+                    .Select(a => (IClientEntity)a.ClientCopy)
+                    .FirstOrDefault();
+
+                latestDraft.Add(customer);
+            }
+
+            if (EntityName.Customer.Equals(entityName, StringComparison.OrdinalIgnoreCase))
+            {
+                customer = CustomerCollection
+                      .Where(client => client.Id == entityId && client.ClientCopy.State.Equals(EntityState.Draft))
+                      .Select(a => (IClientEntity)a.ClientCopy)
+                      .FirstOrDefault();
+
+                latestDraft.Add(customer);
+            }
+
+            return latestDraft;
+        }
+
         internal void AddToSubmittedCopy(ISubmittedEntity entitytoSubmit)
         {
             switch (entitytoSubmit.Name)
@@ -112,7 +148,7 @@ namespace Models.Infrastructure
             EventAggregator.Log("Submitted Entity:'{0}' with Id:'{1}' Added", entitytoSubmit.Name, entitytoSubmit.Id);
         }
 
-        internal ISubmittedEntity? GetLatestSubmittedEntity(string entityId, string entityName, int version)
+        internal ISubmittedEntity? GetLatestSubmittedEntity(string entityId, string entityName)
         {
             switch (entityName)
             {
@@ -146,12 +182,13 @@ namespace Models.Infrastructure
             {
                 case EntityName.Customer:
                     var layout = CustomerCollection.First(customer => customer.Id.Equals(latestChange.Id));
-                    layout.MoveFromSubmittedCopyToWorkingCopy(latestChange);
+                    layout.MoveFromSubmittedToWorking();
                     break;
 
                 case EntityName.LegalEntity:
                     var legalEntityLayout = LegalEntityCollection.First(legalEnity => legalEnity.Id.Equals(latestChange.Id));
-                    legalEntityLayout.MoveFromSubmittedCopyToWorkingCopy(latestChange);
+                    legalEntityLayout.MoveFromSubmittedToWorking();
+                    
                     break;
             }
         }
@@ -184,6 +221,74 @@ namespace Models.Infrastructure
                 case EntityName.LegalEntity:
                     var legalEntityLayout = LegalEntityCollection.First(item => item.Id.Equals(workingCopy.Id));
                     legalEntityLayout.RemoveFromWorkingCopy(workingCopy);
+                    break;
+            }
+        }
+
+        internal void MoveFromSubmittedToWorking(string id, string name)
+        {
+            switch (name)
+            {
+                case EntityName.Customer:
+                    var customerLayout = CustomerCollection.FirstOrDefault(customer => customer.Id.Equals(id, StringComparison.Ordinal));
+                    customerLayout?.MoveFromSubmittedToWorking();
+
+                    break;
+                case EntityName.LegalEntity:
+                    var legalEntityLayout = LegalEntityCollection.FirstOrDefault(legalEntity => legalEntity.Id.Equals(id, StringComparison.Ordinal));
+                    legalEntityLayout?.MoveFromSubmittedToWorking();
+
+                    break;
+            }
+
+            throw new NotImplementedException();
+        }
+
+        internal List<ISubmittedEntity> GetLatestSubmitted(string entityId, string entityName)
+        {
+            var latestDraft = new List<ISubmittedEntity>();
+            ISubmittedEntity? customer = null;
+
+            if (EntityName.LegalEntity.Equals(entityName, StringComparison.OrdinalIgnoreCase))
+            {
+                var legalEntity = LegalEntityCollection?
+                    .First(client => client.Id.Equals(entityId))
+                    .LastestSubmittedCopy;
+
+                latestDraft.Add(legalEntity);
+
+                customer = CustomerCollection
+                    .First(client => client.Id.Equals(legalEntity.CustomerId))
+                    .LastestSubmittedCopy;
+
+                latestDraft.Add(customer);
+            }
+
+            if (EntityName.Customer.Equals(entityName, StringComparison.OrdinalIgnoreCase))
+            {
+                customer = CustomerCollection
+                   .First(client => client.Id == entityId)
+                   .LastestSubmittedCopy;
+
+                latestDraft.Add(customer);
+            }
+
+            return latestDraft;
+        }
+
+        internal void MoveWorkingCopyBackToSubmitted(string entityId, int version, string entityName)
+        {
+            switch (entityName)
+            {
+                case EntityName.Customer:
+                    var customerLayout = CustomerCollection.FirstOrDefault(customer => customer.Id.Equals(entityId, StringComparison.Ordinal));
+                    customerLayout?.MovebackToSubmitted(version);
+
+                    break;
+                case EntityName.LegalEntity:
+                    var legalEntityLayout = LegalEntityCollection.FirstOrDefault(legalEntity => legalEntity.Id.Equals(entityId, StringComparison.Ordinal));
+                    legalEntityLayout?.MovebackToSubmitted(version);
+
                     break;
             }
         }
@@ -226,12 +331,12 @@ namespace Models.Infrastructure
         /// </summary>
         public T? ReadyCopy { get; set; }
 
-        public void MoveFromSubmittedCopyToWorkingCopy(IEntity entity)
+        public void MoveFromSubmittedToWorking()
         {
             WorkingCopy ??= new List<T?>();
 
-            WorkingCopy.Add((T)entity);
-            LastestSubmittedCopy = default;
+            WorkingCopy.Add((T)LastestSubmittedCopy);
+            LastestSubmittedCopy = default(T);
         }
 
         public void SetLatestSubmittedCopy(IEntity entity)
@@ -280,6 +385,31 @@ namespace Models.Infrastructure
             }
 
             return true;
+        }
+
+        internal void MovebackToSubmitted(int version)
+        {
+            if (WorkingCopy == null || WorkingCopy.Count == 0)
+            {
+                return;
+            }
+
+            var copyToMove = WorkingCopy.FirstOrDefault();
+
+            if (LastestSubmittedCopy != null && ((ISubmittedEntity)LastestSubmittedCopy).SubmittedVersion > version)
+            {
+                return;
+            }
+
+            LastestSubmittedCopy = copyToMove;
+            WorkingCopy.Remove(copyToMove);
+
+            //.ToList()
+            //.ForEach(wc =>
+            //{
+            //    LastestSubmittedCopy = ((ISubmittedEntity)wc).SubmittedVersion > version ? LastestSubmittedCopy : wc;
+            //    WorkingCopy.Remove(wc);
+            //});
         }
     }
 }

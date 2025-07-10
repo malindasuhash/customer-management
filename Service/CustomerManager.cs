@@ -15,7 +15,7 @@ namespace Service
 
         public CustomerClient AddCustomer(CustomerClient customerClient, bool submit = false)
         {
-            _changeHandler.Change(customerClient, submit);
+            _changeHandler.Manage(customerClient, submit);
 
             return customerClient;
         }
@@ -35,7 +35,7 @@ namespace Service
 
         public void UpdateCustomer(CustomerClient customer, bool submit = false)
         {
-            _changeHandler.Change(customer, submit);
+            _changeHandler.Manage(customer, submit);
             EventAggregator.Log("Customer updated:'{0}'", customer.ToString());
         }
 
@@ -66,7 +66,7 @@ namespace Service
                 EventAggregator.Log("Id:{0}", legalEntity.Id);
                 EventAggregator.Log("ClientCopy:'{0}'", legalEntity.ClientCopy == null ? string.Empty : legalEntity.ClientCopy.ToString());
                 EventAggregator.Log("SubmittedCopy:'{0}'", legalEntity.LastestSubmittedCopy == null ? string.Empty : legalEntity.LastestSubmittedCopy.ToString());
-                EventAggregator.Log("WorkingCopy:'{0}'", legalEntity.WorkingCopy == null ? "No data" : "Has data");
+                EventAggregator.Log("WorkingCopy:'{0}'", legalEntity.WorkingCopy?.Count == 0 ? "No data" : "Has data");
                 EventAggregator.Log("ReadyCopy:'{0}'", legalEntity.ReadyCopy == null ? string.Empty : legalEntity.ReadyCopy.ToString());
                 EventAggregator.Log("<...RECORD END....>");
             }
@@ -85,7 +85,7 @@ namespace Service
 
         public LegalEntityClient AddLegalEntity(string customerId, LegalEntityClient legalEntityClient, bool submit)
         {
-            _changeHandler.Change(legalEntityClient, submit);
+            _changeHandler.Manage(legalEntityClient, submit);
 
             return legalEntityClient;
         }

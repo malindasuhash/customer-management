@@ -22,7 +22,7 @@ namespace Models.Infrastructure
 
         private readonly EntityManager _entityManager = new();
         private readonly Outbox _outbox = new();
-        private readonly EntityChangeHandler _entityChangeHandler = new();
+        private readonly EntityChangeHandler _changeHandler = new();
 
         private static string GenerateLockKey(string entityId, string entityName) => $"EntityLock_{entityId}_{entityName}";
 
@@ -48,13 +48,19 @@ namespace Models.Infrastructure
                 }
 
                 // Kick off the workflow for this entity
-
-                var latestEntityChange = Database.Instance.GetLatestSubmittedEntity(entityId, entityName, version);
-                _entityManager.Transition(latestEntityChange);
-
-                // TODO: Should I let concurrent changes to the same entity to follow through?
-                _outbox.Evaluate(latestEntityChange);
+                Evaluate(entityId, entityName);
             }
+        }
+
+        private void Evaluate(string entityId, string entityName)
+        {
+            var latestEntityChange = Database.Instance.GetLatestSubmittedEntity(entityId, entityName);
+            if (latestEntityChange == null) return;
+
+            _entityManager.Transition(latestEntityChange);
+
+            // TODO: Should I let concurrent changes to the same entity to follow through?
+            _outbox.Evaluate(latestEntityChange);
         }
 
         internal void OnNotify(Result result)
@@ -74,14 +80,15 @@ namespace Models.Infrastructure
                     case NextAction.Apply:
                         _entityManager.Transition(workingCopy);
                         _outbox.Apply(workingCopy);
+
                         break;
                     case NextAction.Complete:
                         _entityManager.Transition(workingCopy, TransitionContext.Completed);
                         _outbox.Ready(workingCopy);
+                        Evaluate(result.Id, result.EntityName);
+
                         break;
                 }
-
-                return;
             }
 
             if (result.Workflow == Workflow.Evaluation && !result.Success)
@@ -94,6 +101,7 @@ namespace Models.Infrastructure
             {
                 _entityManager.Transition(workingCopy);
                 _outbox.Ready(workingCopy);
+                Evaluate(result.Id, result.EntityName);
             }
         }
 
@@ -114,19 +122,15 @@ namespace Models.Infrastructure
                 }
             }
 
-            // I might need to remove current working copy
-
             // Trigger the evaluation workflow based on the result
             switch (result.EntityName)
             {
                 case EntityName.Customer:
-                    var latestDraftCustomer = Database.Instance.CustomerCollection.First(c => c.Id.Equals(result.Id)).ClientCopy;
-                    _entityChangeHandler.Change(latestDraftCustomer, true);
+                    EntitySubmittedEx(result.Id, result.EntityName, result.Version, true);
                     break;
 
                 case EntityName.LegalEntity:
-                    var latestDraftLegalEntity = Database.Instance.LegalEntityCollection.First(c => c.Id.Equals(result.Id)).ClientCopy;
-                    _entityChangeHandler.Change(latestDraftLegalEntity, true);
+                    EntitySubmittedEx(result.Id, result.EntityName, result.Version, true);   
                     break;
             }
         }
@@ -158,11 +162,25 @@ namespace Models.Infrastructure
                         _outbox.DiscardWorkingCopy(workingCopy);
 
                         // Re-evaluate by submitting the entity again
-                        EntitySubmitted(workingCopy.Id, workingCopy.Name, locks.First());
-                        return; // No need to continue processing this result
+                        Evaluate(workingCopy.Id, workingCopy.Name);
                     }
                 }
             }
+        }
+
+        internal void EntitySubmittedEx(string entityId, string entityName, int version, bool isTouched = false)
+        {
+            if (isTouched)
+            {
+                // The move the working copy back to submitted
+                Database.Instance.MoveWorkingCopyBackToSubmitted(entityId, version, entityName);
+            }
+
+            // Copy submitted entities to working copy
+            _changeHandler.MoveFromSubmittedToWorkingCopy(entityId, entityName, version);
+
+            var workingCopy = Database.Instance.GetWorkingCopy(entityId, version, entityName);
+            EventAggregator.Publish(workingCopy.GetChangedEvent());
         }
     }
 }
