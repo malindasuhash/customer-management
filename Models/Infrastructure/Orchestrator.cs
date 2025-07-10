@@ -26,32 +26,6 @@ namespace Models.Infrastructure
 
         private static string GenerateLockKey(string entityId, string entityName) => $"EntityLock_{entityId}_{entityName}";
 
-        public void EntitySubmitted(string entityId, string entityName, int version)
-        {
-            var entityLock = GenerateLockKey(entityId, entityName);
-            lock (entityLock)
-            {
-                // This is to prevent concurrent processing of the same entity
-                if (_entityIds.TryGetValue(entityLock, out var locks))
-                {
-                    if (!locks.Contains(version))
-                    {
-                        // Add the version to the list of locks
-                        _entityIds[entityLock].Add(version);
-                        EventAggregator.Log($"<magenta> {entityName} Entity {entityId} with version {version} Queued for processing.");
-                        return;
-                    }
-                }
-                else
-                {
-                    _entityIds[entityLock] = new List<int> { version };
-                }
-
-                // Kick off the workflow for this entity
-                Evaluate(entityId, entityName);
-            }
-        }
-
         private void Evaluate(string entityId, string entityName)
         {
             var latestEntityChange = Database.Instance.GetLatestSubmittedEntity(entityId, entityName);
@@ -69,24 +43,18 @@ namespace Models.Infrastructure
 
             if (result.Workflow == Workflow.Evaluation && (result.NextAction == NextAction.Apply || result.NextAction == NextAction.Complete))
             {
-                // Evaluation succeeded, remove lock for this entity
-                // thereafter see whether there are further actions to take.
-                // If there are, then re-evalidate by triggering EntitySubmitted.
-
-                LockAndAction(result.Id, result.EntityName, result.Version);
-
+                // Evaluation succeeded, process next
                 switch (result.NextAction)
                 {
                     case NextAction.Apply:
                         _entityManager.Transition(workingCopy);
                         _outbox.Apply(workingCopy);
-
                         break;
+
                     case NextAction.Complete:
                         _entityManager.Transition(workingCopy, TransitionContext.Completed);
                         _outbox.Ready(workingCopy);
                         Evaluate(result.Id, result.EntityName);
-
                         break;
                 }
             }
@@ -101,8 +69,10 @@ namespace Models.Infrastructure
             {
                 _entityManager.Transition(workingCopy);
                 _outbox.Ready(workingCopy);
-                Evaluate(result.Id, result.EntityName);
+                ProcessEntity(result.Id, result.EntityName, result.Version);
             }
+
+            ManageLock(result.Id, result.EntityName, result.Version);
         }
 
         internal void Touch(Result result, Result executionContext)
@@ -123,27 +93,11 @@ namespace Models.Infrastructure
             }
 
             // Trigger the evaluation workflow based on the result
-            switch (result.EntityName)
-            {
-                case EntityName.Customer:
-                    EntitySubmittedEx(result.Id, result.EntityName, result.Version, true);
-                    break;
-
-                case EntityName.LegalEntity:
-                    EntitySubmittedEx(result.Id, result.EntityName, result.Version, true);   
-                    break;
-            }
+            ProcessEntity(result.Id, result.EntityName, result.Version, true);
         }
 
-        private void LockAndAction(string entityId, string entityName, int version)
+        private void ManageLock(string entityId, string entityName, int version)
         {
-            var workingCopy = Database.Instance.GetWorkingCopy(entityId, version, entityName);
-            if (workingCopy == null)
-            {
-                EventAggregator.Log($"<red> No working copy found for Entity {entityName} with Id {entityId} and Version {version}.");
-                return;
-            }
-
             var entityLock = GenerateLockKey(entityId, entityName);
             lock (entityLock)
             {
@@ -155,21 +109,32 @@ namespace Models.Infrastructure
                     {
                         _entityIds.TryRemove(entityLock, out _);
                     }
-                    else
-                    {
-                        // Pick the first version to continue processing
-                        EventAggregator.Log($"<magenta> New change for {workingCopy.Name} Entity {workingCopy.Id} with version {locks.First()} is ready for processing.");
-                        _outbox.DiscardWorkingCopy(workingCopy);
-
-                        // Re-evaluate by submitting the entity again
-                        Evaluate(workingCopy.Id, workingCopy.Name);
-                    }
                 }
             }
         }
 
-        internal void EntitySubmittedEx(string entityId, string entityName, int version, bool isTouched = false)
+        internal void ProcessEntity(string entityId, string entityName, int version, bool isTouched = false)
         {
+            var entityLock = GenerateLockKey(entityId, entityName);
+            lock (entityLock)
+            {
+                // This is to prevent concurrent processing of the same entity
+                if (_entityIds.TryGetValue(entityLock, out var locks))
+                {
+                    if (!locks.Contains(version))
+                    {
+                        // Add the version to the list of locks
+                        _entityIds[entityLock].Add(version);
+                        EventAggregator.Log($"<magenta> {entityName} Entity {entityId} with version {version} Queued for processing.");
+                        return;
+                    }
+                }
+                else
+                {
+                    _entityIds[entityLock] = new List<int> { version };
+                }
+            }
+
             if (isTouched)
             {
                 // The move the working copy back to submitted

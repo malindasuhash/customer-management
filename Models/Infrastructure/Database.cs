@@ -188,7 +188,7 @@ namespace Models.Infrastructure
                 case EntityName.LegalEntity:
                     var legalEntityLayout = LegalEntityCollection.First(legalEnity => legalEnity.Id.Equals(latestChange.Id));
                     legalEntityLayout.MoveFromSubmittedToWorking();
-                    
+
                     break;
             }
         }
@@ -223,57 +223,6 @@ namespace Models.Infrastructure
                     legalEntityLayout.RemoveFromWorkingCopy(workingCopy);
                     break;
             }
-        }
-
-        internal void MoveFromSubmittedToWorking(string id, string name)
-        {
-            switch (name)
-            {
-                case EntityName.Customer:
-                    var customerLayout = CustomerCollection.FirstOrDefault(customer => customer.Id.Equals(id, StringComparison.Ordinal));
-                    customerLayout?.MoveFromSubmittedToWorking();
-
-                    break;
-                case EntityName.LegalEntity:
-                    var legalEntityLayout = LegalEntityCollection.FirstOrDefault(legalEntity => legalEntity.Id.Equals(id, StringComparison.Ordinal));
-                    legalEntityLayout?.MoveFromSubmittedToWorking();
-
-                    break;
-            }
-
-            throw new NotImplementedException();
-        }
-
-        internal List<ISubmittedEntity> GetLatestSubmitted(string entityId, string entityName)
-        {
-            var latestDraft = new List<ISubmittedEntity>();
-            ISubmittedEntity? customer = null;
-
-            if (EntityName.LegalEntity.Equals(entityName, StringComparison.OrdinalIgnoreCase))
-            {
-                var legalEntity = LegalEntityCollection?
-                    .First(client => client.Id.Equals(entityId))
-                    .LastestSubmittedCopy;
-
-                latestDraft.Add(legalEntity);
-
-                customer = CustomerCollection
-                    .First(client => client.Id.Equals(legalEntity.CustomerId))
-                    .LastestSubmittedCopy;
-
-                latestDraft.Add(customer);
-            }
-
-            if (EntityName.Customer.Equals(entityName, StringComparison.OrdinalIgnoreCase))
-            {
-                customer = CustomerCollection
-                   .First(client => client.Id == entityId)
-                   .LastestSubmittedCopy;
-
-                latestDraft.Add(customer);
-            }
-
-            return latestDraft;
         }
 
         internal void MoveWorkingCopyBackToSubmitted(string entityId, int version, string entityName)
@@ -394,22 +343,12 @@ namespace Models.Infrastructure
                 return;
             }
 
+            // This is ok for now, as we only have one working copy.
             var copyToMove = WorkingCopy.FirstOrDefault();
 
-            if (LastestSubmittedCopy != null && ((ISubmittedEntity)LastestSubmittedCopy).SubmittedVersion > version)
-            {
-                return;
-            }
-
-            LastestSubmittedCopy = copyToMove;
+            // Submitted entity will have the latest version.
+            LastestSubmittedCopy = LastestSubmittedCopy == null ? copyToMove : LastestSubmittedCopy;
             WorkingCopy.Remove(copyToMove);
-
-            //.ToList()
-            //.ForEach(wc =>
-            //{
-            //    LastestSubmittedCopy = ((ISubmittedEntity)wc).SubmittedVersion > version ? LastestSubmittedCopy : wc;
-            //    WorkingCopy.Remove(wc);
-            //});
         }
     }
 }
