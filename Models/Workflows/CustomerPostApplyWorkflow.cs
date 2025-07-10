@@ -20,19 +20,32 @@ namespace Models.Workflows
 
             // Trigger Legal Entity Evaluation Workflow?
             // Get Legal entity for this Customer
-            Database.Instance.LegalEntityCollection
+
+            // Check whether there are any legal entities for this customer
+            var anyLegalEntities = Database.Instance.LegalEntityCollection.Count() == 0;
+
+            if (anyLegalEntities)
+            {
+                EventAggregator.Log("<magenta> END: CustomerPostApplyWorkflow - No linked legal entities - Customer Id:'{0}', Version:{1}", customerEvent.CustomerId, customerEvent.Version);
+                return;
+            }
+
+            // Get list of legal entities for this customer
+            var legalEntities = Database.Instance.LegalEntityCollection
                 .Where(legalEntity => legalEntity.ClientCopy.CustomerId.Equals(customerEvent.CustomerId))
-                .ToList()
-                .ForEach(legalEntity =>
+                .ToList();
+
+            foreach (var legalEntity in legalEntities)
+            {
+                Task.Run(() =>
                 {
-                   Orchestrator.Instance.Touch(
-                       Result.Evaluate(legalEntity.Id, EntityName.LegalEntity), 
-                       Result.EvaluationContext(customerEvent.CustomerId, customerEvent.Version, EntityName.Customer));
+                    Orchestrator.Instance.Touch(
+                        Result.Evaluate(legalEntity.Id, EntityName.LegalEntity),
+                        Result.EvaluationContext(customerEvent.CustomerId, customerEvent.Version, EntityName.Customer));
                 });
+            }
 
             EventAggregator.Log("<magenta> END: CustomerPostApplyWorkflow - Customer Id:'{0}', Version:{1}", customerEvent.CustomerId, customerEvent.Version);
-
-
         }
     }
 }

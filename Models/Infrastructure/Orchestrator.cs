@@ -54,7 +54,6 @@ namespace Models.Infrastructure
                     case NextAction.Complete:
                         _entityManager.Transition(workingCopy, TransitionContext.Completed);
                         _outbox.Ready(workingCopy);
-                        Evaluate(result.Id, result.EntityName);
                         break;
                 }
             }
@@ -69,7 +68,6 @@ namespace Models.Infrastructure
             {
                 _entityManager.Transition(workingCopy);
                 _outbox.Ready(workingCopy);
-                ProcessEntity(result.Id, result.EntityName, result.Version);
             }
 
             ManageLock(result.Id, result.EntityName, result.Version);
@@ -116,24 +114,24 @@ namespace Models.Infrastructure
         internal void ProcessEntity(string entityId, string entityName, int version, bool isTouched = false)
         {
             var entityLock = GenerateLockKey(entityId, entityName);
-            lock (entityLock)
-            {
-                // This is to prevent concurrent processing of the same entity
-                if (_entityIds.TryGetValue(entityLock, out var locks))
-                {
-                    if (!locks.Contains(version))
-                    {
-                        // Add the version to the list of locks
-                        _entityIds[entityLock].Add(version);
-                        EventAggregator.Log($"<magenta> {entityName} Entity {entityId} with version {version} Queued for processing.");
-                        return;
-                    }
-                }
-                else
-                {
-                    _entityIds[entityLock] = new List<int> { version };
-                }
-            }
+            //lock (entityLock)
+            //{
+            //    // This is to prevent concurrent processing of the same entity
+            //    if (_entityIds.TryGetValue(entityLock, out var locks))
+            //    {
+            //        if (!locks.Contains(version))
+            //        {
+            //            // Add the version to the list of locks
+            //            _entityIds[entityLock].Add(version);
+            //            EventAggregator.Log($"<magenta> {entityName} Entity {entityId} with version {version} Queued for processing.");
+            //            return;
+            //        }
+            //    }
+            //    else
+            //    {
+            //        _entityIds[entityLock] = new List<int> { version };
+            //    }
+            //}
 
             if (isTouched)
             {

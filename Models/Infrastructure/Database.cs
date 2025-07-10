@@ -124,7 +124,13 @@ namespace Models.Infrastructure
                       .Select(a => (IClientEntity)a.ClientCopy)
                       .FirstOrDefault();
 
+                var legalEntity = LegalEntityCollection
+                   .Where(client => client.ClientCopy.CustomerId.Equals(customer.Id) && client.ClientCopy.State.Equals(EntityState.Draft))
+                   .Select(a => (IClientEntity)a.ClientCopy)
+                   .FirstOrDefault();
+
                 latestDraft.Add(customer);
+                latestDraft.Add(legalEntity);
             }
 
             return latestDraft;
@@ -150,16 +156,24 @@ namespace Models.Infrastructure
 
         internal ISubmittedEntity? GetLatestSubmittedEntity(string entityId, string entityName)
         {
+            ISubmittedEntity returnThis = null;
             switch (entityName)
             {
                 case EntityName.Customer:
-                    return CustomerCollection.FirstOrDefault(customer => customer.Id.Equals(entityId, StringComparison.Ordinal))?.LastestSubmittedCopy;
+                    returnThis = CustomerCollection.FirstOrDefault(customer => customer.Id.Equals(entityId, StringComparison.Ordinal))?.LastestSubmittedCopy;
+                    break;
 
                 case EntityName.LegalEntity:
-                    return LegalEntityCollection.FirstOrDefault(legalEntity => legalEntity.Id.Equals(entityId, StringComparison.Ordinal))?.LastestSubmittedCopy;
+                    returnThis = LegalEntityCollection.FirstOrDefault(legalEntity => legalEntity.Id.Equals(entityId, StringComparison.Ordinal))?.LastestSubmittedCopy;
+                    break;
             }
 
-            return null;
+            if (returnThis == null)
+            {
+                var aa = "d";
+            }
+
+            return returnThis;
         }
 
         internal ISubmittedEntity? GetWorkingCopy(string id, int version, string entityName)
@@ -340,11 +354,25 @@ namespace Models.Infrastructure
         {
             if (WorkingCopy == null || WorkingCopy.Count == 0)
             {
+                if (LastestSubmittedCopy == null)
+                {
+                    // I need to copy from ReadyCopy to LastestSubmittedCopy.
+                    LastestSubmittedCopy = ReadyCopy;
+                    return;
+                }
+            }
+
+            if (WorkingCopy == null || WorkingCopy.Count == 0)
+            {
                 return;
             }
 
             // This is ok for now, as we only have one working copy.
             var copyToMove = WorkingCopy.FirstOrDefault();
+            if (copyToMove == null)
+            {
+                return;
+            }
 
             // Submitted entity will have the latest version.
             LastestSubmittedCopy = LastestSubmittedCopy == null ? copyToMove : LastestSubmittedCopy;

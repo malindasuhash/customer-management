@@ -23,13 +23,19 @@ namespace Models.Workflows
             // Is there is valid customer? if not then "touch" the Customer.
             var customer = Database.Instance.CustomerCollection.First(c => c.Id.Equals(workingLegalEntity.CustomerId));
 
-            if (customer.ReadyCopy == null)
+            // If there are submitted copied then we need to evaluate the Customer.
+            if (customer.ReadyCopy == null || customer.LastestSubmittedCopy != null)
             {
                 // Notify Orchestrator that the Customer is not ready.
-                EventAggregator.Log($"<red> [TOUCH] Customer '{workingLegalEntity.CustomerId}' is not ready; require evaluation.");
-                Orchestrator.Instance.Touch(
-                    Result.Evaluate(workingLegalEntity.CustomerId, EntityName.Customer),
-                    Result.EvaluationContext(legalEntityEvent.LegalEntityId, legalEntityEvent.Version, EntityName.LegalEntity));
+                EventAggregator.Log($"<red> [TOUCH] Customer '{workingLegalEntity.CustomerId}' is not ready or data sumitted; require evaluation.");
+
+                Task.Run(() =>
+                {
+                    Orchestrator.Instance.Touch(
+                        Result.Evaluate(workingLegalEntity.CustomerId, EntityName.Customer),
+                        Result.EvaluationContext(legalEntityEvent.LegalEntityId, legalEntityEvent.Version, EntityName.LegalEntity));
+                });
+                
                 return;
             }
             else
