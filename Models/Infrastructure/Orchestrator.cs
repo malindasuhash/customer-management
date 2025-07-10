@@ -61,7 +61,7 @@ namespace Models.Infrastructure
         {
             var workingCopy = Database.Instance.GetWorkingCopy(result.Id, result.Version, result.EntityName);
 
-            if (result.Workflow == Workflow.Evaluation && result.NextAction == NextAction.Apply)
+            if (result.Workflow == Workflow.Evaluation && (result.NextAction == NextAction.Apply || result.NextAction == NextAction.Complete))
             {
                 // Evaluation succeeded, remove lock for this entity
                 // thereafter see whether there are further actions to take.
@@ -69,17 +69,24 @@ namespace Models.Infrastructure
 
                 LockAndAction(result.Id, result.EntityName, result.Version);
 
-                _entityManager.Transition(workingCopy);
-                _outbox.Apply(workingCopy);
-
-
+                switch (result.NextAction)
+                {
+                    case NextAction.Apply:
+                        _entityManager.Transition(workingCopy);
+                        _outbox.Apply(workingCopy);
+                        break;
+                    case NextAction.Complete:
+                        _entityManager.Transition(workingCopy, TransitionContext.Completed);
+                        _outbox.Ready(workingCopy);
+                        break;
+                }
 
                 return;
             }
 
             if (result.Workflow == Workflow.Evaluation && !result.Success)
             {
-                _entityManager.Transition(workingCopy, result.Success);
+                _entityManager.Transition(workingCopy, TransitionContext.Failed);
                 _outbox.WorkingCopyfailed(workingCopy);
             }
 
@@ -106,6 +113,8 @@ namespace Models.Infrastructure
                     }
                 }
             }
+
+            // I might need to remove current working copy
 
             // Trigger the evaluation workflow based on the result
             switch (result.EntityName)
@@ -148,7 +157,7 @@ namespace Models.Infrastructure
                         EventAggregator.Log($"<magenta> New change for {workingCopy.Name} Entity {workingCopy.Id} with version {locks.First()} is ready for processing.");
                         _outbox.DiscardWorkingCopy(workingCopy);
 
-                        // Re-evaluate the working copy
+                        // Re-evaluate by submitting the entity again
                         EntitySubmitted(workingCopy.Id, workingCopy.Name, locks.First());
                         return; // No need to continue processing this result
                     }

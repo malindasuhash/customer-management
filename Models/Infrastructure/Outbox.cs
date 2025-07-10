@@ -41,15 +41,33 @@ namespace Models.Infrastructure
             // Update state
 
             // Trigger event
-            EventAggregator.Publish(new CustomerEvaluationCompleteEvent(workingCopy.Id, workingCopy.SubmittedVersion, true));
+            switch (workingCopy.Name)
+            {
+                case EntityName.Customer:
+                    EventAggregator.Publish(new CustomerEvaluationCompleteEvent(workingCopy.Id, workingCopy.SubmittedVersion, true));
+                    break;
 
+                case EntityName.LegalEntity:
+                    var legalEntity = (LegalEntity)workingCopy;
+                    EventAggregator.Publish(new LegalEntityEvaluationCompleteEvent(legalEntity.CustomerId, legalEntity.Id, legalEntity.SubmittedVersion, true));
+                    break;
+            }
         }
 
         internal void Ready(ISubmittedEntity workingCopy)
         {
             var readyUpdateResult = Database.Instance.MarkAsReady(workingCopy);
 
-            EventAggregator.Publish(new CustomerSynchonised(workingCopy.Id, workingCopy.SubmittedVersion));
+            switch (workingCopy.Name)
+            {
+                case EntityName.Customer:
+                    EventAggregator.Publish(new CustomerSynchonised(workingCopy.Id, workingCopy.SubmittedVersion));
+                    break;
+                case EntityName.LegalEntity:
+                    var legalEntity = (LegalEntity)workingCopy;
+                    //EventAggregator.Publish(new LegalEntitySynchonised(legalEntity.CustomerId, legalEntity.Id, legalEntity.SubmittedVersion));
+                    break;
+            }
         }
 
         internal void WorkingCopyfailed(ISubmittedEntity workingCopy)

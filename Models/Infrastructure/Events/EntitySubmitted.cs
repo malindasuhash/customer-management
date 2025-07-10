@@ -20,5 +20,10 @@ namespace Models.Infrastructure.Events
             EntityName = entityName;
             Version = version;
         }
+
+        public override string ToString()
+        {
+            return string.Format("Event='{0}', EntityId='{1}', EntityName='{2}', Version='{3}'", EventName, EntityId, EntityName, Version);
+        }
     }
 }

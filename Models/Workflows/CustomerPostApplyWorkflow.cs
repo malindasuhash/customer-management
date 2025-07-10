@@ -27,7 +27,7 @@ namespace Models.Workflows
                 {
                    Orchestrator.Instance.Touch(
                        Result.Evaluate(legalEntity.Id, EntityName.LegalEntity), 
-                       Result.EvaluationFailed(customerEvent.CustomerId, customerEvent.Version, EntityName.Customer));
+                       Result.EvaluationContext(customerEvent.CustomerId, customerEvent.Version, EntityName.Customer));
                 });
 
             EventAggregator.Log("<magenta> END: CustomerPostApplyWorkflow - Customer Id:'{0}', Version:{1}", customerEvent.CustomerId, customerEvent.Version);

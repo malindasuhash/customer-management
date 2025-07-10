@@ -66,7 +66,7 @@ namespace Service
                 EventAggregator.Log("Id:{0}", legalEntity.Id);
                 EventAggregator.Log("ClientCopy:'{0}'", legalEntity.ClientCopy == null ? string.Empty : legalEntity.ClientCopy.ToString());
                 EventAggregator.Log("SubmittedCopy:'{0}'", legalEntity.LastestSubmittedCopy == null ? string.Empty : legalEntity.LastestSubmittedCopy.ToString());
-                //EventAggregator.Log("WorkingCopy:'{0}'", legalEntity.WorkingCopy == null ? string.Empty : DoFormat(legalEntity.WorkingCopy));
+                EventAggregator.Log("WorkingCopy:'{0}'", legalEntity.WorkingCopy == null ? "No data" : "Has data");
                 EventAggregator.Log("ReadyCopy:'{0}'", legalEntity.ReadyCopy == null ? string.Empty : legalEntity.ReadyCopy.ToString());
                 EventAggregator.Log("<...RECORD END....>");
             }

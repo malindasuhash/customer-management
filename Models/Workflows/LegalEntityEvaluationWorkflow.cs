@@ -15,7 +15,7 @@ namespace Models.Workflows
             var legalEntityEvent = (LegalEntityChanged)eventInfo;
 
             EventAggregator.Log("<magenta> START: LegalEntityEvaluationWorkflow - LegalEntity Id:'{0}', Version:{1}", legalEntityEvent.LegalEntityId, legalEntityEvent.Version);
-            
+
             var workingLegalEntity = Database.Instance.LegalEntityCollection.First(entry => entry.Id.Equals(legalEntityEvent.LegalEntityId)).WorkingCopy.First(ver => ver.SubmittedVersion == eventInfo.Version);
 
             EventAggregator.Log("Processing LegalEntity Id:'{0}' with Name:'{1}', Legal name:'{2}'", workingLegalEntity.Id, workingLegalEntity.Name, workingLegalEntity.LegalName); Thread.Sleep(3 * 1000);
@@ -29,8 +29,12 @@ namespace Models.Workflows
                 EventAggregator.Log($"<red> [TOUCH] Customer '{workingLegalEntity.CustomerId}' is not ready; require evaluation.");
                 Orchestrator.Instance.Touch(
                     Result.Evaluate(workingLegalEntity.CustomerId, EntityName.Customer),
-                    Result.EvaluationFailed(legalEntityEvent.LegalEntityId, legalEntityEvent.Version, EntityName.LegalEntity));
+                    Result.EvaluationContext(legalEntityEvent.LegalEntityId, legalEntityEvent.Version, EntityName.LegalEntity));
                 return;
+            }
+            else
+            {
+                Orchestrator.Instance.OnNotify(Result.EvaluationSuccessAndComplete(legalEntityEvent.LegalEntityId, legalEntityEvent.Version, EntityName.LegalEntity));
             }
 
             EventAggregator.Log("<magenta> END: LegalEntityEvaluationWorkflow - LegalEntity Id:'{0}', Version:{1}", legalEntityEvent.LegalEntityId, legalEntityEvent.Version);

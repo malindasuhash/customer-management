@@ -11,5 +11,7 @@ public static class EntityState
 
     public const string Synchonised = "SYNCHONISED";
 
+    public const string Approved = "APPROVED";
+
     public const string Failed = "FAILED";
 }
