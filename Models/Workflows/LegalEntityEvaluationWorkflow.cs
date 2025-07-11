@@ -24,23 +24,16 @@ namespace Models.Workflows
             var customer = Database.Instance.CustomerCollection.First(c => c.Id.Equals(workingLegalEntity.CustomerId));
 
             // If there are submitted copied then we need to evaluate the Customer.
-            if (customer.ReadyCopy == null || customer.LastestSubmittedCopy != null)
+            if (customer.ReadyCopy == null || customer.LastestSubmittedCopy != null )
             {
                 // Notify Orchestrator that the Customer is not ready.
-                EventAggregator.Log($"<red> [TOUCH] Customer '{workingLegalEntity.CustomerId}' is not ready or data sumitted; require evaluation.");
-
-                Task.Run(() =>
-                {
-                    Orchestrator.Instance.Touch(
-                        Result.Evaluate(workingLegalEntity.CustomerId, EntityName.Customer),
-                        Result.EvaluationContext(legalEntityEvent.LegalEntityId, legalEntityEvent.Version, EntityName.LegalEntity));
-                });
-                
-                return;
+                EventAggregator.Log("<red> There is no ready copy, scheduled change or in progress for Customer '{0}' - Therefore I need to stop.", workingLegalEntity.CustomerId);
             }
             else
             {
-                Orchestrator.Instance.OnNotify(Result.EvaluationSuccessAndComplete(legalEntityEvent.LegalEntityId, legalEntityEvent.Version, EntityName.LegalEntity));
+                Task.Run(() => {
+                    Orchestrator.Instance.OnNotify(Result.EvaluationSuccessAndComplete(legalEntityEvent.LegalEntityId, legalEntityEvent.Version, EntityName.LegalEntity));
+                });
             }
 
             EventAggregator.Log("<magenta> END: LegalEntityEvaluationWorkflow - LegalEntity Id:'{0}', Version:{1}", legalEntityEvent.LegalEntityId, legalEntityEvent.Version);

@@ -36,11 +36,8 @@ namespace Models
                 entityToSubmit.SubmittedVersion = draftEntity.LastSubmittedVersion;
 
                 // Copies to submitted and raises the change event
-                _outbox.JustSubmit(entityToSubmit);
+                _outbox.Submit(entityToSubmit);
             }
-
-            // At this point, all draft entities have been copied to submitted state.
-            EventAggregator.Publish(new EntitySubmitted(clientEntity.Id, clientEntity.Name, clientEntity.LastSubmittedVersion));
         }
 
         public void MoveFromSubmittedToWorkingCopy(string entityId, string entityName, int version)
@@ -50,39 +47,6 @@ namespace Models
             // Move latest submitted entity to working copy state
             _entityManager.Transition(latestSubmitted);
             _outbox.MoveFromSubmittedToWorking(latestSubmitted);
-        }
-
-        public void Change(IClientEntity clientEntity, bool submit)
-        {
-            CreateOrUpdate(clientEntity);
-
-            // Submit for processing 
-            if (submit)
-            {
-                EventAggregator.Log("Processing submission");
-
-                // TODO: I think I need to deep clone entire object hirarchy 
-                var draftEntities = Database.Instance.GetDraftEntitiesFor(clientEntity.Id, clientEntity.Name);
-
-                foreach (var draftEntity in draftEntities)
-                {
-                    // Take a deep copy of latest "draft" version.
-                    var entitytoSubmit = (ISubmittedEntity)draftEntity.Clone();
-                    _entityManager.Transition(entitytoSubmit);
-
-                    // Latest draft is marked for submission
-                    draftEntity.LastSubmittedVersion = draftEntity.DraftVersion;
-                    entitytoSubmit.SubmittedVersion = draftEntity.LastSubmittedVersion;
-
-                    // Copies to submitted and raises the change event
-                    _outbox.Submit(entitytoSubmit);
-
-                    EventAggregator.Log("Entity cloned & submitting, \n Draft: [{0}], \n Submitted: [{1}]", draftEntity, entitytoSubmit);
-
-                    // Notify the event aggregator that the entity has been submitted, But only if the Ids match.
-                    // if (clientEntity.Id != draftEntity.Id) return;
-                }
-            }
         }
 
         private void CreateOrUpdate(IClientEntity clientEntity)
