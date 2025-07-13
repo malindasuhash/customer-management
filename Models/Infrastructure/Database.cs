@@ -262,6 +262,27 @@ namespace Models.Infrastructure
                     break;
             }
         }
+
+        internal void CopyReadyToSubmitted(string id, int version, string entityName)
+        {
+            switch (entityName)
+            {
+                case EntityName.Customer:
+                    var customerLayout = CustomerCollection.FirstOrDefault(customer => customer.Id.Equals(id, StringComparison.Ordinal));
+                    var customer = (Customer)customerLayout?.ReadyCopy.Clone();
+                    customer.State = EntityState.Submitted; // Bit of a hack
+                    customerLayout.SetLatestSubmittedCopy(customer);
+
+                    break;
+                case EntityName.LegalEntity:
+                    var legalEntityLayout = LegalEntityCollection.FirstOrDefault(legalEntity => legalEntity.Id.Equals(id, StringComparison.Ordinal));
+                    var legalEntity = (LegalEntity)legalEntityLayout?.ReadyCopy.Clone();
+                    legalEntity.State = EntityState.Submitted; // Bit of a hack
+                    legalEntityLayout.SetLatestSubmittedCopy(legalEntity);
+
+                    break;
+            }
+        }
     }
 
     public class EntityLayout<T, U>

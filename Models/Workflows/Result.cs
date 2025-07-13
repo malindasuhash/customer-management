@@ -27,7 +27,7 @@ namespace Models.Workflows
 
         public static Result ApplySuccess(string id, int version, string entityName) => new(id, version, true, Workflow.Apply, NextAction.None, entityName);
 
-        public static Result Resubmit(string id, string entityName) => new(id, 0, false, Workflow.None, NextAction.Resubmit, entityName);
+        public static Result ReEvaluate(string id, string entityName) => new(id, 0, false, Workflow.None, NextAction.RequireReEvaluation, entityName);
 
         internal static Result Evaluate(string customerId, string entityName)
         {
@@ -60,7 +60,7 @@ namespace Models.Workflows
         Complete,
         RequireInput,
         RequireEvaluation,
-        Resubmit,
+        RequireReEvaluation,
         AwaitingDependency,
         Failed
     }

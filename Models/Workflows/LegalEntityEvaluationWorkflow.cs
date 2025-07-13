@@ -34,7 +34,6 @@ namespace Models.Workflows
                 return;
             }
             
-
             EventAggregator.Log("LegalEntity Id:'{0}' Evaluation - Start", workingLegalEntity.Id);
             Thread.Sleep(5 * 1000);
             EventAggregator.Log("LegalEntity Id:'{0}' Evaluation - End", workingLegalEntity.Id);
@@ -70,17 +69,17 @@ namespace Models.Workflows
 
         private void ReEvaluateCustomerIfNeeded(EntityLayout<Customer, CustomerClient> customer, LegalEntity legalEntity, LegalEntityChanged legalEntityEvent)
         {
-            // If there is nothing in LastSumitted, or WorkingCopy, then Customer need to be re-evaluated.
-            if (customer.ReadyCopy == null && customer.LastestSubmittedCopy == null && (customer.WorkingCopy?.Count == 0))
+            // Imagine that in some cases, the Customer needs to be re-evaluated.
+            if (legalEntity.LegalName.StartsWith("W") 
+                && customer.ReadyCopy != null  // There is a Ready copy
+                && customer.LastestSubmittedCopy == null // There is nothing submitted for processing
+                && customer.WorkingCopy.Count() == 0) // There is nothing in progress
             {
-                // Notify Orchestrator that the Customer is not ready.
-                EventAggregator.Log("<yellow> There is no ready copy, scheduled change or in progress for Customer '{0}' - Therefore I need to stop.", legalEntity.CustomerId);
-
-                // Notify Orchestrator so that the working copy can move back.
-                Task.Run(() =>
-                {
-                    Orchestrator.Instance.OnNotify(Result.Resubmit(customer.Id, EntityName.Customer));
-                });
+                // Notify Orchestrator that the Customer needs to be re-evaluated.
+                //Task.Run(() =>
+                //{
+                //    Orchestrator.Instance.OnNotify(Result.ReEvaluate(customer.Id, EntityName.Customer));
+                //});
             }
         }
     }

@@ -17,7 +17,7 @@ namespace Models
         public string Name => EntityName.Customer;
     }
 
-    public class Customer : CustomerBase, ISubmittedEntity, IVersionable
+    public class Customer : CustomerBase, ISubmittedEntity, IVersionable, ICloneable
     {
         public int SubmittedVersion { get; set; }
 
@@ -30,6 +30,17 @@ namespace Models
                 "State:'{2}', " +
                 "SubmittedVersion:'{3}'",
                 Id, EmailAddress, State, SubmittedVersion);
+        }
+
+        public object Clone()
+        {
+            return new Customer
+            {
+                Id = Id,
+                EmailAddress = EmailAddress,
+                State = State,
+                SubmittedVersion = SubmittedVersion
+            };
         }
     }
 

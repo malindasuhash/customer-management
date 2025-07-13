@@ -45,9 +45,10 @@ namespace Models
                 Id, CustomerId, State, LegalName, DraftVersion, LastSubmittedVersion);
         }
     }
-    public class LegalEntity : LegalEntityBase, ISubmittedEntity, IVersionable
+    public class LegalEntity : LegalEntityBase, ISubmittedEntity, IVersionable, ICloneable
     {
         public int SubmittedVersion { get; set; }
+
         public IEventInfo GetChangedEvent() => new LegalEntityChanged(Id, SubmittedVersion);
         public override string ToString()
         {
@@ -57,6 +58,18 @@ namespace Models
                 "LegalName:'{3}', " +
                 "SubmittedVersion:'{4}'",
                 Id, CustomerId,  State, LegalName, SubmittedVersion);
+        }
+
+        public object Clone()
+        {
+            return new LegalEntity
+            {
+                Id = Id,
+                CustomerId = CustomerId,
+                State = State,
+                LegalName = LegalName,
+                SubmittedVersion = SubmittedVersion
+            };
         }
     }
 }

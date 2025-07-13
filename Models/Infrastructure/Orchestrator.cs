@@ -48,12 +48,13 @@ namespace Models.Infrastructure
                 return;
             }
 
-            if (result.NextAction == NextAction.Resubmit)
+            if (result.NextAction == NextAction.RequireReEvaluation)
             {
-                // The move the working copy back to submitted
-                // Database.Instance.MoveWorkingCopyBackToSubmitted(result.Id, result.Version, result.EntityName);
+                // Rather than resubmit, we will move the latest Ready copy to Submitted
+                Database.Instance.CopyReadyToSubmitted(result.Id, result.Version, result.EntityName);
 
-                // _changeHandler.Manage(workingCopy, true);
+                // Trigger evaluation of the entity
+                ProcessEntity(result.Id, result.EntityName, result.Version);
 
                 return;
             }
