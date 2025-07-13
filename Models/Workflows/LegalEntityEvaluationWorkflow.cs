@@ -3,6 +3,7 @@ using Models.Infrastructure.Events;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net.NetworkInformation;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -10,9 +11,13 @@ namespace Models.Workflows
 {
     internal class LegalEntityEvaluationWorkflow : IWorkflow
     {
+        public static int InstanceCount = 0;
+
         public void Run(IEventInfo eventInfo)
         {
             var legalEntityEvent = (LegalEntityChanged)eventInfo;
+
+            EventAggregator.Log("LegalEntityEvaluationWorkflow Instance Count: {0}", ++InstanceCount);
 
             EventAggregator.Log("<magenta> START: LegalEntityEvaluationWorkflow - LegalEntity Id:'{0}', Version:{1}", legalEntityEvent.LegalEntityId, legalEntityEvent.Version);
 
@@ -20,23 +25,63 @@ namespace Models.Workflows
 
             EventAggregator.Log("Processing LegalEntity Id:'{0}' with Name:'{1}', Legal name:'{2}'", workingLegalEntity.Id, workingLegalEntity.Name, workingLegalEntity.LegalName); Thread.Sleep(3 * 1000);
 
-            // Is there is valid customer? if not then "touch" the Customer.
             var customer = Database.Instance.CustomerCollection.First(c => c.Id.Equals(workingLegalEntity.CustomerId));
 
-            // If there are submitted copied then we need to evaluate the Customer.
-            if (customer.ReadyCopy == null || customer.LastestSubmittedCopy != null )
+            if (!CanProceed(customer, workingLegalEntity, legalEntityEvent))
             {
-                // Notify Orchestrator that the Customer is not ready.
-                EventAggregator.Log("<red> There is no ready copy, scheduled change or in progress for Customer '{0}' - Therefore I need to stop.", workingLegalEntity.CustomerId);
+                EventAggregator.Log("Awaiting for a dependency to resolve", workingLegalEntity.Id, workingLegalEntity.Name, workingLegalEntity.LegalName); 
+                Orchestrator.Instance.OnNotify(Result.EvaluationWaitingDependency(workingLegalEntity.Id, workingLegalEntity.SubmittedVersion, workingLegalEntity.Name));
+                return;
             }
-            else
-            {
-                Task.Run(() => {
-                    Orchestrator.Instance.OnNotify(Result.EvaluationSuccessAndComplete(legalEntityEvent.LegalEntityId, legalEntityEvent.Version, EntityName.LegalEntity));
-                });
-            }
+            
+
+            EventAggregator.Log("LegalEntity Id:'{0}' Evaluation - Start", workingLegalEntity.Id);
+            Thread.Sleep(5 * 1000);
+            EventAggregator.Log("LegalEntity Id:'{0}' Evaluation - End", workingLegalEntity.Id);
+
+            ReEvaluateCustomerIfNeeded(customer, workingLegalEntity, legalEntityEvent);
+
+            // Notify Orchestrator.
+            Orchestrator.Instance.OnNotify(Result.EvaluationSuccessAndComplete(workingLegalEntity.Id, workingLegalEntity.SubmittedVersion, workingLegalEntity.Name));
 
             EventAggregator.Log("<magenta> END: LegalEntityEvaluationWorkflow - LegalEntity Id:'{0}', Version:{1}", legalEntityEvent.LegalEntityId, legalEntityEvent.Version);
+        }
+
+        private bool CanProceed(EntityLayout<Customer, CustomerClient> customer, LegalEntity legalEntity, LegalEntityChanged legalEntityEvent)
+        {
+            // There is a customer currently in progress.
+            if (customer.WorkingCopy != null && customer.WorkingCopy.Any())
+            {
+                EventAggregator.Log("<yellow> There is a working copy for Customer '{0}' - Therefore I need to stop.", legalEntity.CustomerId);
+                EventAggregator.Log("<magenta> END: LegalEntityEvaluationWorkflow - LegalEntity Id:'{0}', Version:{1}", legalEntityEvent.LegalEntityId, legalEntityEvent.Version);
+                return false;
+            }
+
+            // There is a customer scheduled change.
+            if (customer.LastestSubmittedCopy != null)
+            {
+                EventAggregator.Log("<yellow> There is a LastestSubmittedCopy for Customer '{0}' - Therefore I need to stop.", legalEntity.CustomerId);
+                EventAggregator.Log("<magenta> END: LegalEntityEvaluationWorkflow - LegalEntity Id:'{0}', Version:{1}", legalEntityEvent.LegalEntityId, legalEntityEvent.Version);
+                return false;
+            }
+
+            return true;
+        }
+
+        private void ReEvaluateCustomerIfNeeded(EntityLayout<Customer, CustomerClient> customer, LegalEntity legalEntity, LegalEntityChanged legalEntityEvent)
+        {
+            // If there is nothing in LastSumitted, or WorkingCopy, then Customer need to be re-evaluated.
+            if (customer.ReadyCopy == null && customer.LastestSubmittedCopy == null && (customer.WorkingCopy?.Count == 0))
+            {
+                // Notify Orchestrator that the Customer is not ready.
+                EventAggregator.Log("<yellow> There is no ready copy, scheduled change or in progress for Customer '{0}' - Therefore I need to stop.", legalEntity.CustomerId);
+
+                // Notify Orchestrator so that the working copy can move back.
+                Task.Run(() =>
+                {
+                    Orchestrator.Instance.OnNotify(Result.Resubmit(customer.Id, EntityName.Customer));
+                });
+            }
         }
     }
 }

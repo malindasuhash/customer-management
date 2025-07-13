@@ -17,6 +17,8 @@ namespace Models.Workflows
 
         public static Result EvaluationSuccess(string id, int version, string entityName) => new(id, version, true, Workflow.Evaluation, NextAction.Apply, entityName);
 
+        public static Result EvaluationWaitingDependency(string id, int version, string entityName) => new(id, version, true, Workflow.Evaluation, NextAction.AwaitingDependency, entityName);
+
         public static Result EvaluationSuccessAndComplete(string id, int version, string entityName) => new(id, version, true, Workflow.Evaluation, NextAction.Complete, entityName);
 
         public static Result EvaluationFailed(string id, int version, string entityName) => new(id, version, false, Workflow.Evaluation, NextAction.None, entityName);
@@ -24,6 +26,8 @@ namespace Models.Workflows
         public static Result EvaluationContext(string id, int version, string entityName) => new(id, version, false, Workflow.Evaluation, NextAction.None, entityName);
 
         public static Result ApplySuccess(string id, int version, string entityName) => new(id, version, true, Workflow.Apply, NextAction.None, entityName);
+
+        public static Result Resubmit(string id, string entityName) => new(id, 0, false, Workflow.None, NextAction.Resubmit, entityName);
 
         internal static Result Evaluate(string customerId, string entityName)
         {
@@ -56,6 +60,8 @@ namespace Models.Workflows
         Complete,
         RequireInput,
         RequireEvaluation,
+        Resubmit,
+        AwaitingDependency,
         Failed
     }
 }

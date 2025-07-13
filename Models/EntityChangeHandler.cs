@@ -31,11 +31,8 @@ namespace Models
                 _entityManager.Transition(entityToSubmit);
                 EventAggregator.Log("Entity cloned & submitting, \n Draft: [{0}], \n Submitted: [{1}]", draftEntity, entityToSubmit);
 
-                // Latest draft is marked for submission
                 draftEntity.LastSubmittedVersion = draftEntity.DraftVersion;
                 entityToSubmit.SubmittedVersion = draftEntity.LastSubmittedVersion;
-
-                // Copies to submitted and raises the change event
                 _outbox.Submit(entityToSubmit);
             }
         }

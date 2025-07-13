@@ -50,9 +50,9 @@ namespace Service
                 EventAggregator.Log("<...RECORD START....>");
                 EventAggregator.Log("Id:{0}", customer.Id);
                 EventAggregator.Log("ClientCopy:'{0}'", customer.ClientCopy == null? string.Empty : customer.ClientCopy.ToString());
-                EventAggregator.Log("SubmittedCopy:'{0}'", customer.LastestSubmittedCopy == null ? string.Empty : customer.LastestSubmittedCopy.ToString());
+                EventAggregator.Log("SubmittedCopy:'{0}'", customer.LastestSubmittedCopy == null ? string.Empty : $"Email:{customer.LastestSubmittedCopy.EmailAddress}, State:'{customer.LastestSubmittedCopy.State}'");
                 EventAggregator.Log("WorkingCopy:'{0}'", customer.WorkingCopy == null ? string.Empty : DoFormat(customer.WorkingCopy));
-                EventAggregator.Log("ReadyCopy:'{0}'", customer.ReadyCopy == null ? string.Empty : customer.ReadyCopy.ToString());
+                EventAggregator.Log("ReadyCopy:'{0}'", customer.ReadyCopy == null ? string.Empty : $"Email:{customer.ReadyCopy.EmailAddress}, State:'{customer.ReadyCopy.State}'");
                 EventAggregator.Log("<...RECORD END....>");
             }
 
@@ -65,9 +65,9 @@ namespace Service
                 EventAggregator.Log("<...RECORD START....>");
                 EventAggregator.Log("Id:{0}", legalEntity.Id);
                 EventAggregator.Log("ClientCopy:'{0}'", legalEntity.ClientCopy == null ? string.Empty : legalEntity.ClientCopy.ToString());
-                EventAggregator.Log("SubmittedCopy:'{0}'", legalEntity.LastestSubmittedCopy == null ? string.Empty : legalEntity.LastestSubmittedCopy.ToString());
-                EventAggregator.Log("WorkingCopy:'{0}'", legalEntity.WorkingCopy?.Count == 0 ? "No data" : "Has data");
-                EventAggregator.Log("ReadyCopy:'{0}'", legalEntity.ReadyCopy == null ? string.Empty : legalEntity.ReadyCopy.ToString());
+                EventAggregator.Log("SubmittedCopy:'{0}'", legalEntity.LastestSubmittedCopy == null ? string.Empty : $"Name:'{legalEntity.LastestSubmittedCopy.Name}', State:'{legalEntity.LastestSubmittedCopy.State}'");
+                EventAggregator.Log("WorkingCopy:'{0}'", legalEntity.WorkingCopy?.Count == 0 ? "No data" : $"LegalEntity: '{legalEntity.WorkingCopy.First().Name}', State:'{legalEntity.WorkingCopy.First().State}'");
+                EventAggregator.Log("ReadyCopy:'{0}'", legalEntity.ReadyCopy == null ? string.Empty : $"Name:'{legalEntity.ReadyCopy.Name}', State:'{legalEntity.ReadyCopy.State}'");
                 EventAggregator.Log("<...RECORD END....>");
             }
         }

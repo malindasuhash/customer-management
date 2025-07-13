@@ -130,6 +130,13 @@ namespace Models.Infrastructure
                    .FirstOrDefault();
 
                 latestDraft.Add(customer);
+
+                if (legalEntity == null)
+                {
+                    // If there is no legal entity, then we can return just the customer.
+                    return latestDraft;
+                }
+
                 latestDraft.Add(legalEntity);
             }
 
@@ -239,7 +246,7 @@ namespace Models.Infrastructure
             }
         }
 
-        internal void MoveWorkingCopyBackToSubmitted(string entityId, int version, string entityName)
+        internal void MoveLatestToSubmitted(string entityId, int version, string entityName)
         {
             switch (entityName)
             {
@@ -352,19 +359,15 @@ namespace Models.Infrastructure
 
         internal void MovebackToSubmitted(int version)
         {
-            if (WorkingCopy == null || WorkingCopy.Count == 0)
+            if (WorkingCopy?.Count == 0)
             {
                 if (LastestSubmittedCopy == null)
                 {
                     // I need to copy from ReadyCopy to LastestSubmittedCopy.
                     LastestSubmittedCopy = ReadyCopy;
+                    LastestSubmittedCopy.State = EntityState.Submitted; // Bit of a hack
                     return;
                 }
-            }
-
-            if (WorkingCopy == null || WorkingCopy.Count == 0)
-            {
-                return;
             }
 
             // This is ok for now, as we only have one working copy.
@@ -376,6 +379,7 @@ namespace Models.Infrastructure
 
             // Submitted entity will have the latest version.
             LastestSubmittedCopy = LastestSubmittedCopy == null ? copyToMove : LastestSubmittedCopy;
+            LastestSubmittedCopy.State = EntityState.Submitted; // Bit of a hack
             WorkingCopy.Remove(copyToMove);
         }
     }

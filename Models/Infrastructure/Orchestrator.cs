@@ -41,6 +41,23 @@ namespace Models.Infrastructure
         {
             var workingCopy = Database.Instance.GetWorkingCopy(result.Id, result.Version, result.EntityName);
 
+            if (result.NextAction == NextAction.AwaitingDependency)
+            {
+                Database.Instance.MoveLatestToSubmitted(result.Id, result.Version, result.EntityName);
+
+                return;
+            }
+
+            if (result.NextAction == NextAction.Resubmit)
+            {
+                // The move the working copy back to submitted
+                // Database.Instance.MoveWorkingCopyBackToSubmitted(result.Id, result.Version, result.EntityName);
+
+                // _changeHandler.Manage(workingCopy, true);
+
+                return;
+            }
+
             if (result.Workflow == Workflow.Evaluation && (result.NextAction == NextAction.Apply || result.NextAction == NextAction.Complete))
             {
                 // Evaluation succeeded, process next
@@ -136,7 +153,7 @@ namespace Models.Infrastructure
             if (isTouched)
             {
                 // The move the working copy back to submitted
-                Database.Instance.MoveWorkingCopyBackToSubmitted(entityId, version, entityName);
+                Database.Instance.MoveLatestToSubmitted(entityId, version, entityName);
             }
 
             // Copy submitted entities to working copy
