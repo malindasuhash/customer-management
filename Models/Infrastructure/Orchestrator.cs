@@ -26,24 +26,24 @@ namespace Models.Infrastructure
 
         private static string GenerateLockKey(string entityId, string entityName) => $"EntityLock_{entityId}_{entityName}";
 
-        private void Evaluate(string entityId, string entityName)
-        {
-            var latestEntityChange = Database.Instance.GetLatestSubmittedEntity(entityId, entityName);
-            if (latestEntityChange == null) return;
-
-            _entityManager.Transition(latestEntityChange);
-
-            // TODO: Should I let concurrent changes to the same entity to follow through?
-            _outbox.Evaluate(latestEntityChange);
-        }
-
         internal void OnNotify(Result result)
         {
             var workingCopy = Database.Instance.GetWorkingCopy(result.Id, result.Version, result.EntityName);
 
             if (result.NextAction == NextAction.AwaitingDependency)
             {
-                Database.Instance.MoveLatestToSubmitted(result.Id, result.Version, result.EntityName);
+                // If there are no running workflows of the dependency then we need to start a new one.
+                if (!Database.Instance.IsBeingEvaluated(result.Id, result.EntityName))
+                {
+                    EventAggregator.Log("No running workflows for dependency, starting new workflow for {0} with Id: {1}, Version: {2}", result.EntityName, result.Id, result.Version);
+
+                    // Start Entity workflow
+                    ProcessEntity(result.Id, result.EntityName, result.Version);
+                }
+                else
+                {
+                    EventAggregator.Log("There are running workflows for dependency, waiting for them to complete.");
+                }
 
                 return;
             }
@@ -153,8 +153,15 @@ namespace Models.Infrastructure
 
             if (isTouched)
             {
-                // The move the working copy back to submitted
-                Database.Instance.MoveLatestToSubmitted(entityId, version, entityName);
+                if (Database.Instance.HasReadyCopy(entityId, entityName))
+                {
+                    Database.Instance.CopyReadyToSubmitted(entityId, version, entityName);
+                }
+                else
+                {
+                    // The move the working copy back to submitted
+                    Database.Instance.MoveLatestToSubmitted(entityId, version, entityName);
+                }
             }
 
             // Copy submitted entities to working copy

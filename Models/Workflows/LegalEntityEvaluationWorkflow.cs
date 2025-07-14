@@ -27,10 +27,13 @@ namespace Models.Workflows
 
             var customer = Database.Instance.CustomerCollection.First(c => c.Id.Equals(workingLegalEntity.CustomerId));
 
-            if (!CanProceed(customer, workingLegalEntity, legalEntityEvent))
+            if (customer.ReadyCopy == null) // Customer is not ready
             {
-                EventAggregator.Log("Awaiting for a dependency to resolve", workingLegalEntity.Id, workingLegalEntity.Name, workingLegalEntity.LegalName); 
-                Orchestrator.Instance.OnNotify(Result.EvaluationWaitingDependency(workingLegalEntity.Id, workingLegalEntity.SubmittedVersion, workingLegalEntity.Name));
+                EventAggregator.Log("Awaiting for the Customer dependency to resolve");
+
+                EventAggregator.Log("<magenta> END: LegalEntityEvaluationWorkflow - LegalEntity Id:'{0}', Version:{1}", legalEntityEvent.LegalEntityId, legalEntityEvent.Version);
+
+                Orchestrator.Instance.OnNotify(Result.EvaluationWaitingDependency(customer.Id, 0, EntityName.Customer));
                 return;
             }
             
@@ -44,27 +47,6 @@ namespace Models.Workflows
             Orchestrator.Instance.OnNotify(Result.EvaluationSuccessAndComplete(workingLegalEntity.Id, workingLegalEntity.SubmittedVersion, workingLegalEntity.Name));
 
             EventAggregator.Log("<magenta> END: LegalEntityEvaluationWorkflow - LegalEntity Id:'{0}', Version:{1}", legalEntityEvent.LegalEntityId, legalEntityEvent.Version);
-        }
-
-        private bool CanProceed(EntityLayout<Customer, CustomerClient> customer, LegalEntity legalEntity, LegalEntityChanged legalEntityEvent)
-        {
-            // There is a customer currently in progress.
-            if (customer.WorkingCopy != null && customer.WorkingCopy.Any())
-            {
-                EventAggregator.Log("<yellow> There is a working copy for Customer '{0}' - Therefore I need to stop.", legalEntity.CustomerId);
-                EventAggregator.Log("<magenta> END: LegalEntityEvaluationWorkflow - LegalEntity Id:'{0}', Version:{1}", legalEntityEvent.LegalEntityId, legalEntityEvent.Version);
-                return false;
-            }
-
-            // There is a customer scheduled change.
-            if (customer.LastestSubmittedCopy != null)
-            {
-                EventAggregator.Log("<yellow> There is a LastestSubmittedCopy for Customer '{0}' - Therefore I need to stop.", legalEntity.CustomerId);
-                EventAggregator.Log("<magenta> END: LegalEntityEvaluationWorkflow - LegalEntity Id:'{0}', Version:{1}", legalEntityEvent.LegalEntityId, legalEntityEvent.Version);
-                return false;
-            }
-
-            return true;
         }
 
         private void ReEvaluateCustomerIfNeeded(EntityLayout<Customer, CustomerClient> customer, LegalEntity legalEntity, LegalEntityChanged legalEntityEvent)

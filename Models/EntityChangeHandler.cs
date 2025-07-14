@@ -33,8 +33,11 @@ namespace Models
 
                 draftEntity.LastSubmittedVersion = draftEntity.DraftVersion;
                 entityToSubmit.SubmittedVersion = draftEntity.LastSubmittedVersion;
-                _outbox.Submit(entityToSubmit);
+                _outbox.JustSubmit(entityToSubmit);
             }
+
+            // Only publish the event for the latest submitted entity
+            EventAggregator.Publish(new EntitySubmitted(clientEntity.Id, clientEntity.Name, clientEntity.LastSubmittedVersion));
         }
 
         public void MoveFromSubmittedToWorkingCopy(string entityId, string entityName, int version)

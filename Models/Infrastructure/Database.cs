@@ -283,6 +283,42 @@ namespace Models.Infrastructure
                     break;
             }
         }
+
+        internal bool IsBeingEvaluated(string id, string entityName)
+        {
+            switch (entityName)
+            {
+                case EntityName.Customer:
+                    var customerLayout = CustomerCollection.FirstOrDefault(customer => customer.Id.Equals(id, StringComparison.Ordinal));
+
+                    return customerLayout.WorkingCopy != null && customerLayout.WorkingCopy.Count != 0;
+
+                case EntityName.LegalEntity:
+                    var legalEntityLayout = LegalEntityCollection.FirstOrDefault(legalEntity => legalEntity.Id.Equals(id, StringComparison.Ordinal));
+
+                    return legalEntityLayout.WorkingCopy != null && legalEntityLayout.WorkingCopy.Count != 0;
+            }
+
+            return false;
+        }
+
+        internal bool HasReadyCopy(string entityId, string entityName)
+        {
+            switch (entityName)
+            {
+                case EntityName.Customer:
+                    var customerLayout = CustomerCollection.FirstOrDefault(customer => customer.Id.Equals(entityId, StringComparison.Ordinal));
+
+                    return customerLayout.ReadyCopy != null;
+
+                case EntityName.LegalEntity:
+                    var legalEntityLayout = LegalEntityCollection.FirstOrDefault(legalEntity => legalEntity.Id.Equals(entityId, StringComparison.Ordinal));
+
+                    return legalEntityLayout.ReadyCopy != null;
+            }
+
+            return false;
+        }
     }
 
     public class EntityLayout<T, U>
@@ -380,6 +416,8 @@ namespace Models.Infrastructure
 
         internal void MovebackToSubmitted(int version)
         {
+            if (LastestSubmittedCopy != null) return; // There is already a submitted copy.
+
             if (WorkingCopy?.Count == 0)
             {
                 if (LastestSubmittedCopy == null)
