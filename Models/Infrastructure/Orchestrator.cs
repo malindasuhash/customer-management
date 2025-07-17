@@ -131,26 +131,6 @@ namespace Models.Infrastructure
 
         internal void ProcessEntity(string entityId, string entityName, int version, bool isTouched = false)
         {
-            var entityLock = GenerateLockKey(entityId, entityName);
-            //lock (entityLock)
-            //{
-            //    // This is to prevent concurrent processing of the same entity
-            //    if (_entityIds.TryGetValue(entityLock, out var locks))
-            //    {
-            //        if (!locks.Contains(version))
-            //        {
-            //            // Add the version to the list of locks
-            //            _entityIds[entityLock].Add(version);
-            //            EventAggregator.Log($"<magenta> {entityName} Entity {entityId} with version {version} Queued for processing.");
-            //            return;
-            //        }
-            //    }
-            //    else
-            //    {
-            //        _entityIds[entityLock] = new List<int> { version };
-            //    }
-            //}
-
             if (isTouched)
             {
                 if (Database.Instance.HasReadyCopy(entityId, entityName))

@@ -13,9 +13,9 @@ namespace Service
     {
         private readonly EntityChangeHandler _changeHandler = new();
 
-        public CustomerClient AddCustomer(CustomerClient customerClient, bool submit = false)
+        public CustomerClient AddCustomer(CustomerClient customerClient)
         {
-            _changeHandler.Manage(customerClient, submit);
+            _changeHandler.Manage(customerClient);
 
             return customerClient;
         }
@@ -33,10 +33,15 @@ namespace Service
             return customers;
         }
 
-        public void UpdateCustomer(CustomerClient customer, bool submit = false)
+        public void UpdateCustomer(CustomerClient customer)
         {
-            _changeHandler.Manage(customer, submit);
+            _changeHandler.Manage(customer);
             EventAggregator.Log("Customer updated:'{0}'", customer.ToString());
+        }
+
+        public void SubmitForEvaluation(string id)
+        {
+            _changeHandler.Submit(id, EntityName.Customer);
         }
 
         public void ViewDatabase()
@@ -84,9 +89,9 @@ namespace Service
             return sb.ToString();
         }
 
-        public LegalEntityClient AddLegalEntity(string customerId, LegalEntityClient legalEntityClient, bool submit)
+        public LegalEntityClient AddLegalEntity(string customerId, LegalEntityClient legalEntityClient)
         {
-            _changeHandler.Manage(legalEntityClient, submit);
+            _changeHandler.Manage(legalEntityClient);
 
             return legalEntityClient;
         }

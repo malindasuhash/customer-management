@@ -4,6 +4,7 @@ using Service;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -20,7 +21,7 @@ namespace Client
         }
 
         // POST /customer
-        public void AddCustomer(string emailAddress, bool submit = false)
+        public void AddCustomer(string emailAddress)
         {
             var customerClient = new CustomerClient
             {
@@ -30,7 +31,7 @@ namespace Client
             EventAggregator.Log("Adding a new customer");
 
             
-            _service.AddCustomer(customerClient, submit); 
+            _service.AddCustomer(customerClient); 
             _lastCustomerId = customerClient.Id;
         }
 
@@ -56,15 +57,21 @@ namespace Client
         {
             var customer = _service.GetCustomers().ElementAt(index);
 
-            _service.UpdateCustomer(customer, true);
+            _service.UpdateCustomer(customer);
         }
 
-        public LegalEntityClient AddLegalEntity(int customerIndex, LegalEntityClient legalEntityClient, bool submit = false)
+        public void Submit(int customerIndex)
+        {
+            var customer = _service.GetCustomers().ElementAt(customerIndex);
+            _service.SubmitForEvaluation(customer.Id);
+        }
+
+        public LegalEntityClient AddLegalEntity(int customerIndex, LegalEntityClient legalEntityClient)
         {
             var customer = _service.GetCustomers().ElementAt(customerIndex);
             legalEntityClient.CustomerId = customer.Id;
 
-            _service.AddLegalEntity(customer.Id, legalEntityClient, submit);
+            _service.AddLegalEntity(customer.Id, legalEntityClient);
 
             return legalEntityClient;
         }
@@ -73,5 +80,7 @@ namespace Client
         {
             _service.ViewDatabase();
         }
+
+        
     }
 }

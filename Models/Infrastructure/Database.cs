@@ -124,20 +124,19 @@ namespace Models.Infrastructure
                       .Select(a => (IClientEntity)a.ClientCopy)
                       .FirstOrDefault();
 
-                var legalEntity = LegalEntityCollection
-                   .Where(client => client.ClientCopy.CustomerId.Equals(customer.Id) && client.ClientCopy.State.Equals(EntityState.Draft))
-                   .Select(a => (IClientEntity)a.ClientCopy)
-                   .FirstOrDefault();
-
                 latestDraft.Add(customer);
 
-                if (legalEntity == null)
-                {
-                    // If there is no legal entity, then we can return just the customer.
-                    return latestDraft;
-                }
+                var legalEntity = LegalEntityCollection
+                   .Where(client => client.ClientCopy.CustomerId.Equals(customer.Id) && client.ClientCopy.State.Equals(EntityState.Draft))
+                   .Select(a => (IClientEntity)a.ClientCopy);
 
-                latestDraft.Add(legalEntity);
+                if (legalEntity != null && legalEntity.Any())
+                {
+                    foreach (var le in legalEntity)
+                    {
+                        latestDraft.Add(le);
+                    }
+                }
             }
 
             return latestDraft;

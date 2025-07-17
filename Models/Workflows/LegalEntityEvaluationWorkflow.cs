@@ -27,6 +27,14 @@ namespace Models.Workflows
 
             var customer = Database.Instance.CustomerCollection.First(c => c.Id.Equals(workingLegalEntity.CustomerId));
 
+            if (customer.WorkingCopy != null && customer.WorkingCopy.Count() > 0) // Customer is in progress
+            {
+                EventAggregator.Log("Customer Id:'{0}' is in progress, waiting for it to complete.", customer.Id);
+                
+                EventAggregator.Log("<magenta> END: LegalEntityEvaluationWorkflow - LegalEntity Id:'{0}', Version:{1}", legalEntityEvent.LegalEntityId, legalEntityEvent.Version);
+                return;
+            }
+
             if (customer.ReadyCopy == null) // Customer is not ready
             {
                 EventAggregator.Log("Awaiting for the Customer dependency to resolve");
@@ -38,6 +46,7 @@ namespace Models.Workflows
             }
             
             EventAggregator.Log("LegalEntity Id:'{0}' Evaluation - Start", workingLegalEntity.Id);
+            EventAggregator.Log($"--> System updated - {workingLegalEntity.LegalName} with {customer.ReadyCopy.EmailAddress} <--");
             Thread.Sleep(5 * 1000);
             EventAggregator.Log("LegalEntity Id:'{0}' Evaluation - End", workingLegalEntity.Id);
 

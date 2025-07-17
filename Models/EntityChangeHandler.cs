@@ -14,42 +14,7 @@ namespace Models
         private readonly Outbox _outbox = new();
         private readonly EntityManager _entityManager = new();
 
-        public void Manage(IClientEntity clientEntity, bool submit)
-        {
-            CreateOrUpdate(clientEntity);
-
-            if (!submit) return;
-
-            EventAggregator.Log("Copy latest draft to submitted state.");
-            var draftEntities = Database.Instance.GetLatestDraft(clientEntity.Id, clientEntity.Name);
-
-            // Copy the draft entity to submitted state
-            foreach (var draftEntity in draftEntities)
-            {
-                // Take a deep copy of latest "draft" version.
-                var entityToSubmit = (ISubmittedEntity)draftEntity.Clone();
-                _entityManager.Transition(entityToSubmit);
-                EventAggregator.Log("Entity cloned & submitting, \n Draft: [{0}], \n Submitted: [{1}]", draftEntity, entityToSubmit);
-
-                draftEntity.LastSubmittedVersion = draftEntity.DraftVersion;
-                entityToSubmit.SubmittedVersion = draftEntity.LastSubmittedVersion;
-                _outbox.JustSubmit(entityToSubmit);
-            }
-
-            // Only publish the event for the latest submitted entity
-            EventAggregator.Publish(new EntitySubmitted(clientEntity.Id, clientEntity.Name, clientEntity.LastSubmittedVersion));
-        }
-
-        public void MoveFromSubmittedToWorkingCopy(string entityId, string entityName, int version)
-        {
-            var latestSubmitted = Database.Instance.GetLatestSubmittedEntity(entityId, entityName);
-
-            // Move latest submitted entity to working copy state
-            _entityManager.Transition(latestSubmitted);
-            _outbox.MoveFromSubmittedToWorking(latestSubmitted);
-        }
-
-        private void CreateOrUpdate(IClientEntity clientEntity)
+        public void Manage(IClientEntity clientEntity)
         {
             if (clientEntity.Id is not null)
             {
@@ -73,6 +38,42 @@ namespace Models
                 // New in database
                 _outbox.NewClientCopy(clientEntity);
             }
+        }
+
+        public void Submit(string entityId, string entityName)
+        {
+            EventAggregator.Log("Copy latest draft to submitted state.");
+            var draftEntities = Database.Instance.GetLatestDraft(entityId, entityName);
+
+            // Copy the draft entity to submitted state
+            foreach (var draftEntity in draftEntities)
+            {
+                // Entity unchanged, therefore no need to submit
+                if (draftEntity.LastSubmittedVersion == draftEntity.DraftVersion) continue;
+
+                // Take a deep copy of latest "draft" version.
+                var entityToSubmit = (ISubmittedEntity)draftEntity.Clone();
+                _entityManager.Transition(entityToSubmit);
+                EventAggregator.Log("Entity cloned & submitting, \n Draft: [{0}], \n Submitted: [{1}]", draftEntity, entityToSubmit);
+
+                draftEntity.LastSubmittedVersion = draftEntity.DraftVersion;
+                entityToSubmit.SubmittedVersion = draftEntity.LastSubmittedVersion;
+                _outbox.Submit(entityToSubmit);
+            }
+        }
+
+        public void MoveFromSubmittedToWorkingCopy(string entityId, string entityName, int version)
+        {
+            var latestSubmitted = Database.Instance.GetLatestSubmittedEntity(entityId, entityName);
+
+            // Move latest submitted entity to working copy state
+            _entityManager.Transition(latestSubmitted);
+            _outbox.MoveFromSubmittedToWorking(latestSubmitted);
+        }
+
+        private void CreateOrUpdate(IClientEntity clientEntity)
+        {
+           
         }
     }
 }
