@@ -46,7 +46,7 @@ namespace Models.Workflows
             }
             
             EventAggregator.Log("LegalEntity Id:'{0}' Evaluation - Start", workingLegalEntity.Id);
-            EventAggregator.Log($"--> System updated - {workingLegalEntity.LegalName} with {customer.ReadyCopy.EmailAddress} <--");
+            EventAggregator.Log($"--> Legal Entity System updated - {workingLegalEntity.LegalName} with Customer email '{customer.ReadyCopy.EmailAddress}' <--");
             Thread.Sleep(5 * 1000);
             EventAggregator.Log("LegalEntity Id:'{0}' Evaluation - End", workingLegalEntity.Id);
 

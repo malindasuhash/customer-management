@@ -4,6 +4,7 @@ using Models.Infrastructure;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -94,6 +95,19 @@ namespace Service
             _changeHandler.Manage(legalEntityClient);
 
             return legalEntityClient;
+        }
+
+        public EntityLayout<LegalEntity, LegalEntityClient> GetLegalEntity(int legalEntityIndex)
+        {
+            var layout = Database.Instance.LegalEntityCollection.ElementAt(legalEntityIndex);
+
+            return layout;
+        }
+
+        public void UpdateLegalEntity(LegalEntityClient legalEntity)
+        {
+            _changeHandler.Manage(legalEntity);
+            EventAggregator.Log("LegalEntity updated:'{0}'", legalEntity);
         }
     }
 }

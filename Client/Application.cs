@@ -13,7 +13,6 @@ namespace Client
     internal class Application
     {
         private readonly CustomerManager _service;
-        private string _lastCustomerId = string.Empty;
 
         public Application()
         {
@@ -32,7 +31,6 @@ namespace Client
 
             
             _service.AddCustomer(customerClient); 
-            _lastCustomerId = customerClient.Id;
         }
 
         // GET /customer/{customerId}
@@ -60,12 +58,7 @@ namespace Client
             _service.UpdateCustomer(customer);
         }
 
-        public void Submit(int customerIndex)
-        {
-            var customer = _service.GetCustomers().ElementAt(customerIndex);
-            _service.SubmitForEvaluation(customer.Id);
-        }
-
+        // POST customer/{customer-id}/legal-entity
         public LegalEntityClient AddLegalEntity(int customerIndex, LegalEntityClient legalEntityClient)
         {
             var customer = _service.GetCustomers().ElementAt(customerIndex);
@@ -76,11 +69,37 @@ namespace Client
             return legalEntityClient;
         }
 
+        // PUT /customer/{customerId}/legal-entity/{legal-entity-id}
+        public void UpdateLegalEntity(int legalEntityIndex, string newLegalName)
+        {
+            var legalEntity = _service.GetLegalEntity(legalEntityIndex);
+            legalEntity.ClientCopy.LegalName = newLegalName;
+
+            _service.UpdateLegalEntity(legalEntity.ClientCopy);
+        }
+
+
+        // GET /customer/{customerId}/Legal-entity/{legalEntityId}
+        public EntityLayout<LegalEntity, LegalEntityClient> GetLegalEntity(int index) // For simplicity, using index
+        {
+            var legalEntity = _service.GetLegalEntity(index);
+
+            return legalEntity;
+        }
+
+        public void Submit(int customerIndex)
+        {
+            var customer = _service.GetCustomers().ElementAt(customerIndex);
+            _service.SubmitForEvaluation(customer.Id);
+        }
+
+      
+
         public void ShowData()
         {
             _service.ViewDatabase();
         }
 
-        
+       
     }
 }

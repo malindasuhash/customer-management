@@ -21,9 +21,9 @@ do
     Console.WriteLine();
     Console.WriteLine("4. Add new legal entity");
     Console.WriteLine("5. Update legal entity");
-    Console.WriteLine("6. [TODO] Get legal entity");
+    Console.WriteLine("6. Get legal entity");
     Console.WriteLine();
-    Console.WriteLine("a. Display data");
+    Console.WriteLine("a. Debug data");
     Console.WriteLine("x. Submit!");
     Console.WriteLine();
     Console.WriteLine("0. Exit");
@@ -37,7 +37,7 @@ do
             break;
 
         case "2":
-          var customerIndex = GetCustomerIndex();
+          var customerIndex = GetIndex();
 
             Console.WriteLine("--> Customer emailAddress: ");
             var customerEmail = Console.ReadLine();
@@ -46,17 +46,32 @@ do
             break;
 
         case "3":
-            var showIndex = GetCustomerIndex();
+            var showIndex = GetIndex();
             var customer = app.GetCustomer(showIndex);
-            DisplayDetails(customer);
+            DisplayCustomer(customer);
 
             Console.ReadKey();
 
             break;
 
         case "4":
-            var i = GetCustomerIndex();
+            var i = GetIndex();
             app.AddLegalEntity(i, new LegalEntityClient { LegalName = "Cambridge Bakery" });
+            break;
+
+        case "5":
+            var legalEntityIndex = GetIndex("Legal Entity Index");
+            Console.WriteLine("--> New Legal Name: ");
+            var newLegalName = Console.ReadLine();
+            app.UpdateLegalEntity(legalEntityIndex, newLegalName);
+            break;
+
+        case "6":
+            var legalEntityIndexToDisplay = GetIndex("Legal Entity Index");
+            var legalEntity = app.GetLegalEntity(legalEntityIndexToDisplay);
+            DisplayLegalEntityDetails(legalEntity);
+            Console.ReadKey();
+
             break;
 
         case "a":
@@ -64,7 +79,7 @@ do
             break;
 
         case "x":
-            var customerIndexToSubmit = GetCustomerIndex();
+            var customerIndexToSubmit = GetIndex();
             app.Submit(customerIndexToSubmit);
             break;
     }
@@ -73,7 +88,7 @@ do
 
 } while (!input.Equals("0", StringComparison.OrdinalIgnoreCase));
 
-void DisplayDetails(EntityLayout<Customer, CustomerClient> customer)
+void DisplayCustomer(EntityLayout<Customer, CustomerClient> customer)
 {
     if (customer != null)
     {
@@ -97,21 +112,45 @@ void DisplayDetails(EntityLayout<Customer, CustomerClient> customer)
     }
 }
 
+void DisplayLegalEntityDetails(EntityLayout<LegalEntity, LegalEntityClient> legalEntity)
+{
+    if (legalEntity != null)
+    {
+        Console.WriteLine($"LegalEntity ID: {legalEntity.Id}");
+        Console.WriteLine($"Client Copy: {legalEntity.ClientCopy}");
+        Console.WriteLine($"Latest Submitted Copy: {legalEntity.LastestSubmittedCopy}");
+        if (legalEntity.WorkingCopy != null)
+        {
+            Console.WriteLine($"Working Copy: {string.Join("| ", legalEntity.WorkingCopy)}");
+        }
+        else
+        {
+            Console.WriteLine("Working Copy:");
+        }
+
+        Console.WriteLine($"Ready Copy: {legalEntity.ReadyCopy}");
+    }
+    else
+    {
+        Console.WriteLine("No legalEntity details available.");
+    }
+}
+
 Console.WriteLine("Enter to terminate");
 Console.ReadLine();
 
-int GetCustomerIndex()
+int GetIndex(string display = "Customer Index")
 {
     Console.WriteLine();
     Console.WriteLine("Input needed:");
-    Console.WriteLine("--> Customer Index: ");
+    Console.WriteLine($"--> {display}: ");
     int index;
     var result = int.TryParse(Console.ReadLine(), out index);
 
     if (!result || index < 0)
     {
         Console.WriteLine("Invalid index. Please enter a valid non-negative integer.");
-        return GetCustomerIndex(); // Recursive call to get a valid index
+        return GetIndex(); // Recursive call to get a valid index
     }
 
     return index;
