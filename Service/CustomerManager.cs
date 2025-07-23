@@ -98,11 +98,16 @@ namespace Service
             return sb.ToString();
         }
 
-        public LegalEntityClient AddLegalEntity(string customerId, LegalEntityClient legalEntityClient)
+        public LegalEntity AddLegalEntity(string customerId, LegalEntity legalEntity)
         {
-            _changeHandler.Manage(legalEntityClient);
+            var legalEntityDocument = new Document<LegalEntity>
+            {
+                Draft = legalEntity
+            };
 
-            return legalEntityClient;
+            _changeHandler.Manage(legalEntityDocument);
+
+            return legalEntity;
         }
 
         public EntityLayout<LegalEntity, LegalEntityClient> GetLegalEntity(int legalEntityIndex)

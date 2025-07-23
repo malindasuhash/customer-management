@@ -56,7 +56,7 @@ do
 
         case "4":
             var i = GetIndex();
-            app.AddLegalEntity(i, new LegalEntityClient { LegalName = "Cambridge Bakery" });
+            app.AddLegalEntity(i, "Cambridge Bakery");
             break;
 
         case "5":

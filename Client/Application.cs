@@ -59,14 +59,19 @@ namespace Client
         }
 
         // POST customer/{customer-id}/legal-entity
-        public LegalEntityClient AddLegalEntity(int customerIndex, LegalEntityClient legalEntityClient)
+        public LegalEntity AddLegalEntity(int customerIndex, string legalName)
         {
             var customer = _service.GetCustomers().ElementAt(customerIndex);
-            legalEntityClient.CustomerId = customer.Id;
 
-            _service.AddLegalEntity(customer.Id, legalEntityClient);
+            var legalEntity = new LegalEntity
+            {
+                LegalName = legalName,
+                CustomerId = customer.Id
+            };
 
-            return legalEntityClient;
+            _service.AddLegalEntity(customer.Id, legalEntity);
+
+            return legalEntity;
         }
 
         // PUT /customer/{customerId}/legal-entity/{legal-entity-id}
