@@ -14,29 +14,36 @@ namespace Service
     {
         private readonly EntityChangeHandler _changeHandler = new();
 
-        public CustomerClient AddCustomer(CustomerClient customerClient)
+        public Customer AddCustomer(Customer customer)
         {
-            _changeHandler.Manage(customerClient);
+            var customerDocument = new Document<Customer>
+            {
+                Draft = customer
+            };
 
-            return customerClient;
+            _changeHandler.Manage(customerDocument);
+
+            return customer;
         }
 
-        public EntityLayout<Customer, CustomerClient> GetCustomer(int index)
+        public Document<Customer> GetCustomer(int index)
         {
-            var layout = Database.Instance.CustomerCollection.ElementAt(index);
+            var layout = Database.Instance.CustomerDocuments.ElementAt(index);
 
             return layout;
         }
 
-        public IEnumerable<CustomerClient> GetCustomers()
+        public IEnumerable<Document<Customer>> GetCustomers()
         {
-            var customers = Database.Instance.CustomerCollection.Select(c => c.ClientCopy);
+            var customers = Database.Instance.CustomerDocuments;
+
             return customers;
         }
 
-        public void UpdateCustomer(CustomerClient customer)
+        public void UpdateCustomer(Document<Customer> customer)
         {
             _changeHandler.Manage(customer);
+
             EventAggregator.Log("Customer updated:'{0}'", customer.ToString());
         }
 
@@ -55,7 +62,7 @@ namespace Service
             {
                 EventAggregator.Log("<...RECORD START....>");
                 EventAggregator.Log("Id:{0}", customer.Id);
-                EventAggregator.Log("ClientCopy:'{0}'", customer.ClientCopy == null? string.Empty : customer.ClientCopy.ToString());
+                EventAggregator.Log("ClientCopy:'{0}'", customer.ClientCopy == null ? string.Empty : customer.ClientCopy.ToString());
                 EventAggregator.Log("SubmittedCopy:'{0}'", customer.LastestSubmittedCopy == null ? string.Empty : $"Email:{customer.LastestSubmittedCopy.EmailAddress}, State:'{customer.LastestSubmittedCopy.State}'");
                 EventAggregator.Log("WorkingCopy:'{0}'", customer.WorkingCopy == null ? string.Empty : DoFormat(customer.WorkingCopy));
                 EventAggregator.Log("ReadyCopy:'{0}'", customer.ReadyCopy == null ? string.Empty : $"Email:{customer.ReadyCopy.EmailAddress}, State:'{customer.ReadyCopy.State}'");
@@ -72,7 +79,7 @@ namespace Service
                 EventAggregator.Log("Id:{0}", legalEntity.Id);
                 EventAggregator.Log("ClientCopy:'{0}'", legalEntity.ClientCopy == null ? string.Empty : legalEntity.ClientCopy.ToString());
                 EventAggregator.Log("SubmittedCopy:'{0}'", legalEntity.LastestSubmittedCopy == null ? string.Empty : $"Name:'{legalEntity.LastestSubmittedCopy.Name}', State:'{legalEntity.LastestSubmittedCopy.State}'");
-                EventAggregator.Log("WorkingCopy:'{0}'", 
+                EventAggregator.Log("WorkingCopy:'{0}'",
                     legalEntity.WorkingCopy == null || legalEntity.WorkingCopy.Count() == 0 ? "No data" : $"LegalEntity: '{legalEntity.WorkingCopy.First().Name}', State:'{legalEntity.WorkingCopy.First().State}'");
                 EventAggregator.Log("ReadyCopy:'{0}'", legalEntity.ReadyCopy == null ? string.Empty : $"Name:'{legalEntity.ReadyCopy.Name}', State:'{legalEntity.ReadyCopy.State}'");
                 EventAggregator.Log("<...RECORD END....>");
@@ -83,7 +90,8 @@ namespace Service
         {
             StringBuilder sb = new();
 
-            foreach (var customer in workingCopy) {
+            foreach (var customer in workingCopy)
+            {
                 sb.AppendLine(customer.ToString());
             }
 

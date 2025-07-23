@@ -1,19 +1,19 @@
-﻿namespace Models
+﻿using Models.Contract;
+
+namespace Models
 {
-    public class LegalEntity : ICloneable
+    public class LegalEntity : IEntity, ICloneable
     {
-        public string Id { get; set; }
         public string CustomerId { get; set; }
         public string LegalName { get; set; }
         public string Name => EntityName.LegalEntity;
 
-        public override string ToString() => string.Format($"Id:'{Id}', CustomerId:'{CustomerId}', LegalName:'{LegalName}'");
+        public override string ToString() => string.Format($"CustomerId:'{CustomerId}', LegalName:'{LegalName}'");
 
         public object Clone()
         {
             return new LegalEntity
             {
-                Id = Id,
                 CustomerId = CustomerId,
                 LegalName = LegalName
             };

@@ -88,23 +88,14 @@ do
 
 } while (!input.Equals("0", StringComparison.OrdinalIgnoreCase));
 
-void DisplayCustomer(EntityLayout<Customer, CustomerClient> customer)
+void DisplayCustomer(Document<Customer> customer)
 {
     if (customer != null)
     {
         Console.WriteLine($"Customer ID: {customer.Id}");
-        Console.WriteLine($"Client Copy: {customer.ClientCopy}");
-        Console.WriteLine($"Latest Submitted Copy: {customer.LastestSubmittedCopy}");
-        if (customer.WorkingCopy != null)
-        {
-            Console.WriteLine($"Working Copy: {string.Join("| ", customer.WorkingCopy)}");
-        }
-        else
-        {
-            Console.WriteLine("Working Copy:");
-        }
-
-        Console.WriteLine($"Ready Copy: {customer.ReadyCopy}");
+        Console.WriteLine($"Draft({customer.DraftVersion}): {customer.Draft}");
+        Console.WriteLine($"Submitted({customer.SubmittedVersion}): {customer.Submitted}");
+        Console.WriteLine($"Approved({customer.Approved}): {customer.Approved}");
     }
     else
     {

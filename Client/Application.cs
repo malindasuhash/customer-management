@@ -22,7 +22,7 @@ namespace Client
         // POST /customer
         public void AddCustomer(string emailAddress)
         {
-            var customerClient = new CustomerClient
+            var customer = new Customer
             {
                 EmailAddress = emailAddress
             };
@@ -30,11 +30,11 @@ namespace Client
             EventAggregator.Log("Adding a new customer");
 
             
-            _service.AddCustomer(customerClient); 
+            _service.AddCustomer(customer); 
         }
 
         // GET /customer/{customerId}
-        public EntityLayout<Customer, CustomerClient> GetCustomer(int index) // For simplicity, using index as customerId
+        public Document<Customer> GetCustomer(int index) // For simplicity, using index as customerId
         {
             var customer = _service.GetCustomer(index);
 
@@ -45,7 +45,7 @@ namespace Client
         public void UpdateCustomer(int index, string newEmailAddress)
         {
             var customer = _service.GetCustomers().ElementAt(index);
-            customer.EmailAddress = newEmailAddress;
+            ((Customer)customer.Draft).EmailAddress = newEmailAddress;
 
             _service.UpdateCustomer(customer);
         }

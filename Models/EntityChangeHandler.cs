@@ -6,37 +6,36 @@ using System.Threading.Tasks;
 using Models.Infrastructure;
 using Models.Infrastructure.Events;
 using Models.Contract;
+using System.Security.Claims;
+using System.Runtime.InteropServices;
 
 namespace Models
 {
     public class EntityChangeHandler
     {
         private readonly Outbox _outbox = new();
-        private readonly EntityManager _entityManager = new();
+        private readonly DocumentStateManager _stateManager = new();
 
-        public void Manage(IClientEntity clientEntity)
+        public void Manage<T>(Document<T> document) where T: class, IEntity, new()
         {
-            if (clientEntity.Id is not null)
+            if (document.Id is not null)
             {
                 // Incrementing the version as there has been a change
-                clientEntity.DraftVersion++;
+                document.DraftVersion++;
 
-                EventAggregator.Log("Entity Id {0} updated, State:'{1}' new Draft version:'{2}'",
-                    clientEntity.Id,
-                    clientEntity.State,
-                    clientEntity.DraftVersion);
+                EventAggregator.Log($"Entity Id {document.Id} updated, State:'{document.CurrentState}' new Draft version:'{document.DraftVersion}'");
 
                 // Update in database
-                _outbox.UpdateClientCopy(clientEntity);
+                _outbox.UpdateOrInsert(document);
             }
             else
             {
-                clientEntity.Id = Guid.NewGuid().ToString();
-                clientEntity.DraftVersion = 1;
-                _entityManager.Transition(clientEntity);
+                document.Id = Guid.NewGuid().ToString();
+                document.DraftVersion = 1;
+                _stateManager.Transition(document);
 
                 // New in database
-                _outbox.NewClientCopy(clientEntity);
+                _outbox.UpdateOrInsert(document);
             }
         }
 
@@ -53,7 +52,7 @@ namespace Models
 
                 // Take a deep copy of latest "draft" version.
                 var entityToSubmit = (ISubmittedEntity)draftEntity.Clone();
-                _entityManager.Transition(entityToSubmit);
+                _stateManager.Transition(entityToSubmit);
                 EventAggregator.Log("Entity cloned & submitting, \n Draft: [{0}], \n Submitted: [{1}]", draftEntity, entityToSubmit);
 
                 draftEntity.LastSubmittedVersion = draftEntity.DraftVersion;
@@ -67,7 +66,7 @@ namespace Models
             var latestSubmitted = Database.Instance.GetLatestSubmittedEntity(entityId, entityName);
 
             // Move latest submitted entity to working copy state
-            _entityManager.Transition(latestSubmitted);
+            _stateManager.Transition(latestSubmitted);
             _outbox.MoveFromSubmittedToWorking(latestSubmitted);
         }
 

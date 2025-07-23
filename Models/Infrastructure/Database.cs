@@ -14,15 +14,14 @@ namespace Models.Infrastructure
     {
         public static Database Instance = new();
 
-        private Database()
+        public List<Document<Customer>> CustomerDocuments { get; private set; }
+        public List<Document<LegalEntity>> LegalEntityDocuments { get; private set; } = new();
+
+        static Database()
         {
-            CustomerCollection = new List<EntityLayout<Customer, CustomerClient>>();
-            LegalEntityCollection = new List<EntityLayout<LegalEntity, LegalEntityClient>>();
+            Instance.CustomerDocuments = new List<Document<Customer>>();
+            Instance.LegalEntityDocuments = new List<Document<LegalEntity>>();
         }
-
-        public IList<EntityLayout<Customer, CustomerClient>> CustomerCollection { get; private set; }
-
-        public IList<EntityLayout<LegalEntity, LegalEntityClient>> LegalEntityCollection { get; private set; }
 
         public void AddToClientCopy(IClientEntity clientEntity)
         {
@@ -317,6 +316,22 @@ namespace Models.Infrastructure
             }
 
             return false;
+        }
+
+        internal void UpsertDocument<T>(Document<T> document) where T : class, IEntity, new()
+        {
+            switch (document.Name)
+            {
+                case EntityName.Customer:
+                    var alreadyStored = CustomerDocuments.Any(doc => doc.Id.Equals(document.Id));
+                    if (!alreadyStored)
+                    {
+                        CustomerDocuments.Add((Document<Customer>)Convert.ChangeType(document, typeof(Document<Customer>)));
+                    }
+                    break;
+            }
+
+            throw new NotImplementedException();
         }
     }
 

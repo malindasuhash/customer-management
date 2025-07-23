@@ -18,9 +18,9 @@ namespace Models.Infrastructure
             Database.Instance.AddToClientCopy(clientEntity);
         }
 
-        public void UpdateClientCopy(IClientEntity clientEntity)
+        public void UpdateOrInsert<T>(Document<T> document) where T: class, IEntity, new ()
         {
-            Database.Instance.UpdateClientCopy(clientEntity);
+            Database.Instance.UpsertDocument(document);
         }
 
         public void JustSubmit(ISubmittedEntity submittedEntity)

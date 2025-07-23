@@ -1,18 +1,18 @@
-﻿namespace Models
+﻿using Models.Contract;
+
+namespace Models
 {
-    public class Customer : ICloneable
+    public class Customer : IEntity, ICloneable
     {
-        public string Id { get; set; }
         public string EmailAddress { get; set; }
         public string Name => EntityName.Customer;
 
-        public override string ToString() => string.Format($"Id:'{Id}', Name:'{Name}', EmailAddress: '{EmailAddress}'");
+        public override string ToString() => string.Format($"Name:'{Name}', EmailAddress: '{EmailAddress}'");
 
         public object Clone()
         {
             return new Customer
             {
-                Id = Id,
                 EmailAddress = EmailAddress
             };
         }

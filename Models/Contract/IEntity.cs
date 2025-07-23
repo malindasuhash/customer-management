@@ -8,7 +8,6 @@ namespace Models.Contract
 {
     public interface IEntity // Marker interface
     {
-        string Id { get; set; }
         string Name { get; }
     }
 
