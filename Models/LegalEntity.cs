@@ -1,27 +1,13 @@
-﻿using Models.Contract;
-using Models.Infrastructure.Events;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace Models
+﻿namespace Models
 {
-    public class LegalEntityBase : IEntity
+    public class LegalEntity : ICloneable
     {
         public string Id { get; set; }
         public string CustomerId { get; set; }
-        public string State { get; set; }
-        public string Name => EntityName.LegalEntity;
         public string LegalName { get; set; }
-    }
+        public string Name => EntityName.LegalEntity;
 
-    public class LegalEntityClient : LegalEntityBase, IClientEntity, IVersionable
-    {
-        public int DraftVersion { get; set; }
-        public int LastSubmittedVersion { get; set; }
-        public int SubmittedVersion { get; set; }
+        public override string ToString() => string.Format($"Id:'{Id}', CustomerId:'{CustomerId}', LegalName:'{LegalName}'");
 
         public object Clone()
         {
@@ -29,46 +15,7 @@ namespace Models
             {
                 Id = Id,
                 CustomerId = CustomerId,
-                State = State,
                 LegalName = LegalName
-            };
-        }
-
-        public override string ToString()
-        {
-            return string.Format("Id:'{0}', " +
-                "CustomerId:'{1}', " +
-                "State:'{2}', " +
-                "LegalName:'{3}', " +
-                "DraftVersion: '{4}', " +
-                "SubmittedVersion:'{5}'",
-                Id, CustomerId, State, LegalName, DraftVersion, LastSubmittedVersion);
-        }
-    }
-    public class LegalEntity : LegalEntityBase, ISubmittedEntity, IVersionable, ICloneable
-    {
-        public int SubmittedVersion { get; set; }
-
-        public IEventInfo GetChangedEvent() => new LegalEntityChanged(Id, SubmittedVersion);
-        public override string ToString()
-        {
-            return string.Format("Id:'{0}', " +
-                "CustomerId:'{1}', " +
-                "State:'{2}', " +
-                "LegalName:'{3}', " +
-                "SubmittedVersion:'{4}'",
-                Id, CustomerId,  State, LegalName, SubmittedVersion);
-        }
-
-        public object Clone()
-        {
-            return new LegalEntity
-            {
-                Id = Id,
-                CustomerId = CustomerId,
-                State = State,
-                LegalName = LegalName,
-                SubmittedVersion = SubmittedVersion
             };
         }
     }

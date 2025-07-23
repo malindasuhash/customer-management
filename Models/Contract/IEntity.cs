@@ -9,7 +9,18 @@ namespace Models.Contract
     public interface IEntity // Marker interface
     {
         string Id { get; set; }
-        string State { get; set; }
         string Name { get; }
+    }
+
+    public class NullEntity : IEntity
+    {
+        public static readonly NullEntity Empty = new NullEntity();
+        public string Id { get; set; } = Guid.Empty.ToString();
+        public string State { get; set; } = string.Empty;
+        public string Name => "NullEntity";
+        public override string ToString()
+        {
+            return $"Id: '{Id}', State: '{State}', Name: '{Name}'";
+        }
     }
 }
