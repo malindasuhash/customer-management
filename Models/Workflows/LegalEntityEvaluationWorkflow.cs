@@ -1,11 +1,5 @@
 ﻿using Models.Infrastructure;
 using Models.Infrastructure.Events;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Net.NetworkInformation;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Models.Workflows
 {
@@ -19,59 +13,39 @@ namespace Models.Workflows
 
             EventAggregator.Log("LegalEntityEvaluationWorkflow Instance Count: {0}", ++InstanceCount);
 
-            EventAggregator.Log("<magenta> START: LegalEntityEvaluationWorkflow - LegalEntity Id:'{0}', Version:{1}", legalEntityEvent.LegalEntityId, legalEntityEvent.Version);
+            EventAggregator.Log($"<magenta> START: LegalEntityEvaluationWorkflow - LegalEntity Id:'{legalEntityEvent.LegalEntityDocument.Id}', CloneInfo:'{legalEntityEvent.LegalEntityDocument}'");
 
-            var workingLegalEntity = Database.Instance.LegalEntityCollection.First(entry => entry.Id.Equals(legalEntityEvent.LegalEntityId)).WorkingCopy.First(ver => ver.SubmittedVersion == eventInfo.Version);
+            var workingLegalEntity = ((LegalEntity)legalEntityEvent.LegalEntityDocument.Submitted);
 
-            EventAggregator.Log("Processing LegalEntity Id:'{0}' with Name:'{1}', Legal name:'{2}'", workingLegalEntity.Id, workingLegalEntity.Name, workingLegalEntity.LegalName); Thread.Sleep(3 * 1000);
+            EventAggregator.Log("Processing LegalEntity Id:'{0}' with Name:'{1}', Legal name:'{2}'", legalEntityEvent.LegalEntityDocument.Id, workingLegalEntity.Name, workingLegalEntity.LegalName); Thread.Sleep(3 * 1000);
 
-            var customer = Database.Instance.CustomerCollection.First(c => c.Id.Equals(workingLegalEntity.CustomerId));
+            var customerFromDatabase = Database.Instance.CustomerDocuments.First(c => c.Id.Equals(workingLegalEntity.CustomerId));
 
-            if (customer.WorkingCopy != null && customer.WorkingCopy.Count() > 0) // Customer is in progress
+            // There is an ongoing change for the Customer, so we need to wait.
+            if (customerFromDatabase.Approved == null && customerFromDatabase.Submitted != null)
             {
-                EventAggregator.Log("Customer Id:'{0}' is in progress, waiting for it to complete.", customer.Id);
-                
-                EventAggregator.Log("<magenta> END: LegalEntityEvaluationWorkflow - LegalEntity Id:'{0}', Version:{1}", legalEntityEvent.LegalEntityId, legalEntityEvent.Version);
+                EventAggregator.Log("Customer with Id:'{0}' not approved yet, but a change may be ongoing.", workingLegalEntity.CustomerId);
+
+                Orchestrator.Instance.OnNotify(Result.EvaluationWaitingDependency(customerFromDatabase.Id, 0, EntityName.Customer));
+
+                EventAggregator.Log($"<magenta> END: LegalEntityEvaluationWorkflow - LegalEntity Id:'{legalEntityEvent.LegalEntityDocument.Id}'");
+
                 return;
             }
 
-            if (customer.ReadyCopy == null) // Customer is not ready
-            {
-                EventAggregator.Log("Awaiting for the Customer dependency to resolve");
+            // Ideally we should not hit this case, but just in case.
+            if (customerFromDatabase.Approved == null) return;
 
-                EventAggregator.Log("<magenta> END: LegalEntityEvaluationWorkflow - LegalEntity Id:'{0}', Version:{1}", legalEntityEvent.LegalEntityId, legalEntityEvent.Version);
-
-                Orchestrator.Instance.OnNotify(Result.EvaluationWaitingDependency(customer.Id, 0, EntityName.Customer));
-                return;
-            }
-            
-            EventAggregator.Log("LegalEntity Id:'{0}' Evaluation - Start", workingLegalEntity.Id);
-            EventAggregator.Log($"--> Legal Entity System updated - {workingLegalEntity.LegalName} with Customer email '{customer.ReadyCopy.EmailAddress}' <--");
+            // At this point, we have a Customer that is Approved.
+            EventAggregator.Log($"LegalEntity Id:'{legalEntityEvent.LegalEntityDocument.Id}' Evaluation - Start");
+            EventAggregator.Log($"--> Legal Entity System updated - {workingLegalEntity.LegalName} with Customer email '{((Customer)customerFromDatabase.Approved).EmailAddress}' <--");
             Thread.Sleep(5 * 1000);
-            EventAggregator.Log("LegalEntity Id:'{0}' Evaluation - End", workingLegalEntity.Id);
-
-            ReEvaluateCustomerIfNeeded(customer, workingLegalEntity, legalEntityEvent);
+            EventAggregator.Log($"LegalEntity Id:'{legalEntityEvent.LegalEntityDocument.Id}' Evaluation - End");
 
             // Notify Orchestrator.
-            Orchestrator.Instance.OnNotify(Result.EvaluationSuccessAndComplete(workingLegalEntity.Id, workingLegalEntity.SubmittedVersion, workingLegalEntity.Name));
+            Orchestrator.Instance.OnNotify(Result.EvaluationSuccessAndComplete(legalEntityEvent.LegalEntityDocument.Id, legalEntityEvent.LegalEntityDocument.SubmittedVersion, ((LegalEntity)legalEntityEvent.LegalEntityDocument.Approved).LegalName));
 
-            EventAggregator.Log("<magenta> END: LegalEntityEvaluationWorkflow - LegalEntity Id:'{0}', Version:{1}", legalEntityEvent.LegalEntityId, legalEntityEvent.Version);
-        }
-
-        private void ReEvaluateCustomerIfNeeded(EntityLayout<Customer, CustomerClient> customer, LegalEntity legalEntity, LegalEntityChanged legalEntityEvent)
-        {
-            // Imagine that in some cases, the Customer needs to be re-evaluated.
-            if (legalEntity.LegalName.StartsWith("W") 
-                && customer.ReadyCopy != null  // There is a Ready copy
-                && customer.LastestSubmittedCopy == null // There is nothing submitted for processing
-                && customer.WorkingCopy.Count() == 0) // There is nothing in progress
-            {
-                // Notify Orchestrator that the Customer needs to be re-evaluated.
-                //Task.Run(() =>
-                //{
-                //    Orchestrator.Instance.OnNotify(Result.ReEvaluate(customer.Id, EntityName.Customer));
-                //});
-            }
+            EventAggregator.Log($"<magenta> END: LegalEntityEvaluationWorkflow - LegalEntity Id:'{legalEntityEvent.LegalEntityDocument.Id}'");
         }
     }
 }
