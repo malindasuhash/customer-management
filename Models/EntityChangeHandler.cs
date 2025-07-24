@@ -16,7 +16,7 @@ namespace Models
         private readonly Outbox _outbox = new();
         private readonly DocumentStateManager _stateManager = new();
 
-        public void Manage<T>(IDocument<T> document) where T: class, IEntity, new()
+        public void Manage<T>(IDocument<T> document) where T : class, IEntity, new()
         {
             if (document.Id is not null)
             {
@@ -30,9 +30,10 @@ namespace Models
             }
             else
             {
+                _stateManager.Transition(document);
+
                 document.Id = Guid.NewGuid().ToString();
                 document.DraftVersion = 1;
-                _stateManager.Transition(document);
 
                 // New in database
                 _outbox.UpdateOrInsert(document);
@@ -41,13 +42,31 @@ namespace Models
 
         public void Submit(string entityId, string entityName)
         {
-            EventAggregator.Log("Copy latest draft to submitted state.");
-            var draftEntities = Database.Instance.GetLatestDraft(entityId, entityName);
+            EventAggregator.Log("Identifying changed entities to process.");
+
+            var impactedCustomer = Database.Instance.CustomerDocuments
+                .First(customer => customer.Id.Equals(entityId));
+
+            // Check if the entity has been changed since last submission
+            if (impactedCustomer.DraftVersion != impactedCustomer.SubmittedVersion)
+            {
+                impactedCustomer.Submitted = (Customer)impactedCustomer.Draft.Clone();
+                impactedCustomer.SubmittedVersion = impactedCustomer.DraftVersion;
+
+                var changedCustomerDocumentToSubmit = (CustomerDocument)impactedCustomer.Clone();
+
+                // Raise changed event
+            }
+
+            // Find out all linked entities related to Customer
+
+
+            //var draftEntities = Database.Instance.GetLatestDraft(entityId, entityName);
 
             // Copy the draft entity to submitted state
-            foreach (var draftEntity in draftEntities)
-            {
-                
+            //foreach (var draftEntity in draftEntities)
+            //{
+
                 //// Entity unchanged, therefore no need to submit
                 //if (draftEntity.DraftVersion == draftEntity.DraftVersion) continue;
 
@@ -59,7 +78,7 @@ namespace Models
                 //draftEntity.LastSubmittedVersion = draftEntity.DraftVersion;
                 //entityToSubmit.SubmittedVersion = draftEntity.LastSubmittedVersion;
                 //_outbox.Submit(entityToSubmit);
-            }
+            //}
         }
 
         public void MoveFromSubmittedToWorkingCopy(string entityId, string entityName, int version)
@@ -67,7 +86,7 @@ namespace Models
             var latestSubmitted = Database.Instance.GetLatestSubmittedEntity(entityId, entityName);
 
             // Move latest submitted entity to working copy state
-           // _stateManager.Transition(latestSubmitted);
+            // _stateManager.Transition(latestSubmitted);
             _outbox.MoveFromSubmittedToWorking(latestSubmitted);
         }
     }

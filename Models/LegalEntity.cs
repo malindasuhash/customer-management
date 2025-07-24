@@ -4,6 +4,7 @@ namespace Models
 {
     public class LegalEntity : IEntity, ICloneable
     {
+        public static LegalEntity Empty = new LegalEntity();
         public string CustomerId { get; set; }
         public string LegalName { get; set; }
         public string Name => EntityName.LegalEntity;

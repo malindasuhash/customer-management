@@ -14,25 +14,18 @@ namespace Models.Infrastructure
     {
         public static Database Instance = new();
 
-        public List<IDocument<Customer>> CustomerDocuments { get; private set; }
-        public List<IDocument<LegalEntity>> LegalEntityDocuments { get; private set; } = new();
-
-        static Database()
-        {
-            Instance.CustomerDocuments = new List<IDocument<Customer>>();
-            Instance.LegalEntityDocuments = new List<IDocument<LegalEntity>>();
-        }
+        public List<CustomerDocument> CustomerDocuments { get; private set; } = new();
+        public List<LegalEntityDocument> LegalEntityDocuments { get; private set; } = new();
 
         public IList<IDocument<IEntity>> GetLatestDraft(string entityId, string entityName)
         {
             var latestDraft = new List<IDocument<IEntity>>();
-            IDocument<IEntity>? customer = null;
 
             if (EntityName.Customer.Equals(entityName, StringComparison.OrdinalIgnoreCase))
             {
-                customer = (IDocument<IEntity>?)CustomerDocuments.FirstOrDefault(client => client.Id.Equals(entityId, StringComparison.Ordinal));
+                var customer = CustomerDocuments.FirstOrDefault(client => client.Id.Equals(entityId, StringComparison.Ordinal));
 
-                latestDraft.Add(customer);
+                latestDraft.Add((IDocument<IEntity>)customer);
 
                 var legalEntities = LegalEntityDocuments
                    .Where(client => client.Draft.CustomerId.Equals(customer.Id));
@@ -201,12 +194,10 @@ namespace Models.Infrastructure
                     var alreadyStored = CustomerDocuments.Any(doc => doc.Id.Equals(document.Id));
                     if (!alreadyStored)
                     {
-                        CustomerDocuments.Add((IDocument<Customer>)Convert.ChangeType(document, typeof(IDocument<Customer>)));
+                        CustomerDocuments.Add((CustomerDocument)document);
                     }
                     break;
             }
-
-            throw new NotImplementedException();
         }
     }
 
