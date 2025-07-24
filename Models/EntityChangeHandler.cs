@@ -16,7 +16,7 @@ namespace Models
         private readonly Outbox _outbox = new();
         private readonly DocumentStateManager _stateManager = new();
 
-        public void Manage<T>(Document<T> document) where T: class, IEntity, new()
+        public void Manage<T>(IDocument<T> document) where T: class, IEntity, new()
         {
             if (document.Id is not null)
             {
@@ -68,11 +68,6 @@ namespace Models
             // Move latest submitted entity to working copy state
             _stateManager.Transition(latestSubmitted);
             _outbox.MoveFromSubmittedToWorking(latestSubmitted);
-        }
-
-        private void CreateOrUpdate(IClientEntity clientEntity)
-        {
-           
         }
     }
 }

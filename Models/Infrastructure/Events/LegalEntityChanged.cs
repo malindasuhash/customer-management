@@ -4,9 +4,9 @@
     {
         public string EventName => nameof(LegalEntityChanged);
 
-        public Document<LegalEntity> LegalEntityDocument { get; }
+        public IDocument<LegalEntity> LegalEntityDocument { get; }
 
-        public LegalEntityChanged(Document<LegalEntity> legalEntityDocument)
+        public LegalEntityChanged(IDocument<LegalEntity> legalEntityDocument)
         {
             LegalEntityDocument = legalEntityDocument;
         }

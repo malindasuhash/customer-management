@@ -28,7 +28,7 @@ namespace Client
         }
 
         // GET /customer/{customerId}
-        public Document<Customer> GetCustomer(int index) // For simplicity, using index as customerId
+        public IDocument<Customer> GetCustomer(int index) // For simplicity, using index as customerId
         {
             var customer = _service.GetCustomer(index);
 
@@ -79,7 +79,7 @@ namespace Client
 
 
         // GET /customer/{customerId}/Legal-entity/{legalEntityId}
-        public Document<LegalEntity> GetLegalEntity(int index) // For simplicity, using index
+        public IDocument<LegalEntity> GetLegalEntity(int index) // For simplicity, using index
         {
             var legalEntity = _service.GetLegalEntity(index);
 

@@ -9,7 +9,7 @@ namespace Service
 
         public Customer AddCustomer(Customer customer)
         {
-            var customerDocument = new Document<Customer>
+            var customerDocument = new IDocument<Customer>
             {
                 Draft = customer
             };
@@ -19,21 +19,21 @@ namespace Service
             return customer;
         }
 
-        public Document<Customer> GetCustomer(int index)
+        public IDocument<Customer> GetCustomer(int index)
         {
             var layout = Database.Instance.CustomerDocuments.ElementAt(index);
 
             return layout;
         }
 
-        public IEnumerable<Document<Customer>> GetCustomers()
+        public IEnumerable<IDocument<Customer>> GetCustomers()
         {
             var customers = Database.Instance.CustomerDocuments;
 
             return customers;
         }
 
-        public void UpdateCustomer(Document<Customer> customer)
+        public void UpdateCustomer(IDocument<Customer> customer)
         {
             _changeHandler.Manage(customer);
 
@@ -42,7 +42,7 @@ namespace Service
 
         public LegalEntity AddLegalEntity(string customerId, LegalEntity legalEntity)
         {
-            var legalEntityDocument = new Document<LegalEntity>
+            var legalEntityDocument = new IDocument<LegalEntity>
             {
                 Draft = legalEntity
             };
@@ -52,14 +52,14 @@ namespace Service
             return legalEntity;
         }
 
-        public Document<LegalEntity> GetLegalEntity(int legalEntityIndex)
+        public IDocument<LegalEntity> GetLegalEntity(int legalEntityIndex)
         {
             var legalEntityDocument = Database.Instance.LegalEntityDocuments.ElementAt(legalEntityIndex);
 
             return legalEntityDocument;
         }
 
-        public void UpdateLegalEntity(Document<LegalEntity> legalEntity)
+        public void UpdateLegalEntity(IDocument<LegalEntity> legalEntity)
         {
             _changeHandler.Manage(legalEntity);
             EventAggregator.Log("LegalEntity updated:'{0}'", legalEntity);

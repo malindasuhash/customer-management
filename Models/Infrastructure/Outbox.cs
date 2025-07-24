@@ -18,7 +18,7 @@ namespace Models.Infrastructure
             Database.Instance.AddToClientCopy(clientEntity);
         }
 
-        public void UpdateOrInsert<T>(Document<T> document) where T: class, IEntity, new ()
+        public void UpdateOrInsert<T>(IDocument<T> document) where T: class, IEntity, new ()
         {
             Database.Instance.UpsertDocument(document);
         }
@@ -84,10 +84,6 @@ namespace Models.Infrastructure
             EventAggregator.Publish(new CustomerEvalidationFailed(workingCopy.Id, workingCopy.SubmittedVersion));
         }
 
-        internal void DiscardWorkingCopy(ISubmittedEntity workingCopy)
-        {
-            Database.Instance.DiscardWorkingCopy(workingCopy);
-        }
 
         internal void MoveFromSubmittedToWorking(ISubmittedEntity submittedEntity)
         {

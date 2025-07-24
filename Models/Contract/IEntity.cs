@@ -11,6 +11,11 @@ namespace Models.Contract
         string Name { get; }
     }
 
+    public class EntityBase : IEntity
+    {
+        public string Name => nameof(EntityBase);
+    }
+
     public class NullEntity : IEntity
     {
         public static readonly NullEntity Empty = new NullEntity();

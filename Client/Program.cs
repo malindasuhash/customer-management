@@ -88,7 +88,7 @@ do
 
 } while (!input.Equals("0", StringComparison.OrdinalIgnoreCase));
 
-void DisplayCustomer(Document<Customer> customer)
+void DisplayCustomer(IDocument<Customer> customer)
 {
     if (customer != null)
     {
@@ -103,23 +103,14 @@ void DisplayCustomer(Document<Customer> customer)
     }
 }
 
-void DisplayLegalEntityDetails(EntityLayout<LegalEntity, LegalEntityClient> legalEntity)
+void DisplayLegalEntityDetails(IDocument<LegalEntity> legalEntity)
 {
     if (legalEntity != null)
     {
-        Console.WriteLine($"LegalEntity ID: {legalEntity.Id}");
-        Console.WriteLine($"Client Copy: {legalEntity.ClientCopy}");
-        Console.WriteLine($"Latest Submitted Copy: {legalEntity.LastestSubmittedCopy}");
-        if (legalEntity.WorkingCopy != null)
-        {
-            Console.WriteLine($"Working Copy: {string.Join("| ", legalEntity.WorkingCopy)}");
-        }
-        else
-        {
-            Console.WriteLine("Working Copy:");
-        }
-
-        Console.WriteLine($"Ready Copy: {legalEntity.ReadyCopy}");
+        Console.WriteLine($"Customer ID: {legalEntity.Id}");
+        Console.WriteLine($"Draft({legalEntity.DraftVersion}): {legalEntity.Draft}");
+        Console.WriteLine($"Submitted({legalEntity.SubmittedVersion}): {legalEntity.Submitted}");
+        Console.WriteLine($"Approved({legalEntity.Approved}): {legalEntity.Approved}");
     }
     else
     {

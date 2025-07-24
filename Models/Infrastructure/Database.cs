@@ -14,13 +14,13 @@ namespace Models.Infrastructure
     {
         public static Database Instance = new();
 
-        public List<Document<Customer>> CustomerDocuments { get; private set; }
-        public List<Document<LegalEntity>> LegalEntityDocuments { get; private set; } = new();
+        public List<IDocument<Customer>> CustomerDocuments { get; private set; }
+        public List<IDocument<LegalEntity>> LegalEntityDocuments { get; private set; } = new();
 
         static Database()
         {
-            Instance.CustomerDocuments = new List<Document<Customer>>();
-            Instance.LegalEntityDocuments = new List<Document<LegalEntity>>();
+            Instance.CustomerDocuments = new List<IDocument<Customer>>();
+            Instance.LegalEntityDocuments = new List<IDocument<LegalEntity>>();
         }
 
         public void AddToClientCopy(IClientEntity clientEntity)
@@ -41,99 +41,25 @@ namespace Models.Infrastructure
             EventAggregator.Log("Client Entity:'{0}' with Id:'{1}' Added", name, clientEntity.Id);
         }
 
-        public void UpdateClientCopy(IClientEntity clientEntity)
+        public IList<IDocument<IEntity>> GetLatestDraft(string entityId, string entityName)
         {
-            var name = clientEntity.Name.Replace("Client", string.Empty);
-
-            switch (name)
-            {
-                case EntityName.Customer:
-                    var layout = CustomerCollection.First(customer => customer.Id.Equals(clientEntity.Id));
-                    layout.ClientCopy = (CustomerClient)clientEntity;
-                    break;
-
-                case EntityName.LegalEntity:
-                    var legalEntityLayout = LegalEntityCollection.First(legalEntity => legalEntity.Id.Equals(clientEntity.Id));
-                    legalEntityLayout.ClientCopy = (LegalEntityClient)clientEntity;
-                    break;
-            }
-
-            EventAggregator.Log("Client Entity:'{0}' with Id:'{1}' Updated", name, clientEntity.Id);
-        }
-
-        public List<IClientEntity> GetDraftEntitiesFor(string entityId, string entityName)
-        {
-            // TODO: Build up entire object hirarchy
-            // For now, just return the latest draft version of Customer and LegalEntity
-            List<IClientEntity> draftEntities = new();
-
-            // Customer is special, for now when it is changed, then I will process just that entity.
-            if (EntityName.Customer.Equals(entityName, StringComparison.OrdinalIgnoreCase))
-            {
-                draftEntities.Add(CustomerCollection
-                   .Where(client => client.Id == entityId && client.ClientCopy.State.Equals(EntityState.Draft))
-                   .Select(a => (IClientEntity)a.ClientCopy)
-                   .First());
-            }
-
-            // When the change is related to LegalEntity then I can find both CustomerId and LegalEntityId.
-            if (EntityName.LegalEntity.Equals(entityName, StringComparison.OrdinalIgnoreCase))
-            {
-                var legalEntity = (LegalEntityClient)LegalEntityCollection
-                    .Where(client => client.Id == entityId && client.ClientCopy.State.Equals(EntityState.Draft))
-                    .Select(a => (IClientEntity)a.ClientCopy)
-                    .First();
-                draftEntities.Add(legalEntity);
-
-                draftEntities.Add(CustomerCollection
-                    .Where(client => client.Id == legalEntity.CustomerId && client.ClientCopy.State.Equals(EntityState.Draft))
-                    .Select(a => (IClientEntity)a.ClientCopy)
-                    .First());
-            }
-
-            return draftEntities;
-        }
-
-        public IList<IClientEntity> GetLatestDraft(string entityId, string entityName)
-        {
-            var latestDraft = new List<IClientEntity>();
-            IClientEntity? customer = null;
-
-            if (EntityName.LegalEntity.Equals(entityName, StringComparison.OrdinalIgnoreCase))
-            {
-                var legalEntity = LegalEntityCollection
-                    .Where(client => client.Id == entityId && client.ClientCopy.State.Equals(EntityState.Draft))
-                    .Select(a => (IClientEntity)a.ClientCopy)
-                    .FirstOrDefault();
-
-                latestDraft.Add(legalEntity);
-
-                customer = CustomerCollection
-                    .Where(client => client.Id == ((LegalEntityClient)legalEntity).CustomerId && client.ClientCopy.State.Equals(EntityState.Draft))
-                    .Select(a => (IClientEntity)a.ClientCopy)
-                    .FirstOrDefault();
-
-                latestDraft.Add(customer);
-            }
+            var latestDraft = new List<IDocument<IEntity>>();
+            IDocument<IEntity>? customer = null;
 
             if (EntityName.Customer.Equals(entityName, StringComparison.OrdinalIgnoreCase))
             {
-                customer = CustomerCollection
-                      .Where(client => client.Id == entityId && client.ClientCopy.State.Equals(EntityState.Draft))
-                      .Select(a => (IClientEntity)a.ClientCopy)
-                      .FirstOrDefault();
+                customer = (IDocument<IEntity>?)CustomerDocuments.FirstOrDefault(client => client.Id.Equals(entityId, StringComparison.Ordinal));
 
                 latestDraft.Add(customer);
 
-                var legalEntity = LegalEntityCollection
-                   .Where(client => client.ClientCopy.CustomerId.Equals(customer.Id) && client.ClientCopy.State.Equals(EntityState.Draft))
-                   .Select(a => (IClientEntity)a.ClientCopy);
-
-                if (legalEntity != null && legalEntity.Any())
+                var legalEntities = LegalEntityDocuments
+                   .Where(client => client.Draft.CustomerId.Equals(customer.Id));
+                   
+                if (legalEntities != null && legalEntities.Any())
                 {
-                    foreach (var le in legalEntity)
+                    foreach (var le in legalEntities)
                     {
-                        latestDraft.Add(le);
+                        latestDraft.Add((IDocument<IEntity>)le);
                     }
                 }
             }
@@ -318,7 +244,7 @@ namespace Models.Infrastructure
             return false;
         }
 
-        internal void UpsertDocument<T>(Document<T> document) where T : class, IEntity, new()
+        internal void UpsertDocument<T>(IDocument<T> document) where T : class, IEntity, new()
         {
             switch (document.Name)
             {
@@ -326,7 +252,7 @@ namespace Models.Infrastructure
                     var alreadyStored = CustomerDocuments.Any(doc => doc.Id.Equals(document.Id));
                     if (!alreadyStored)
                     {
-                        CustomerDocuments.Add((Document<Customer>)Convert.ChangeType(document, typeof(Document<Customer>)));
+                        CustomerDocuments.Add((IDocument<Customer>)Convert.ChangeType(document, typeof(IDocument<Customer>)));
                     }
                     break;
             }

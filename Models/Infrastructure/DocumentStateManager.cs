@@ -9,7 +9,7 @@ namespace Models.Infrastructure
 {
     public class DocumentStateManager
     {
-        public void Transition<T>(Document<T> document) where T: class, IEntity, new()
+        public void Transition<T>(IDocument<T> document) where T: class, IEntity, new()
         {
             if (document.Id == null)
             {
