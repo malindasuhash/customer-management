@@ -11,10 +11,10 @@ namespace Models.Infrastructure
     {
         public void Transition(IEntity entity, TransitionContext context = TransitionContext.Success)
         {
-            var currentState = entity.State;
-            entity.State = GetNextState(entity.State, context);
+            //var currentState = entity.State;
+            //entity.State = GetNextState(entity.State, context);
 
-            EventAggregator.Log("'{3}' State change: from:'{0}' to '{1}', Entity Id: '{2}'", currentState, entity.State, entity.Id, entity.Name);
+            //EventAggregator.Log("'{3}' State change: from:'{0}' to '{1}', Entity Id: '{2}'", currentState, entity.State, entity.Id, entity.Name);
         }
 
         private string GetNextState(string currentState, TransitionContext context)

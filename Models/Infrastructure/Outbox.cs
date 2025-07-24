@@ -13,26 +13,9 @@ namespace Models.Infrastructure
 {
     public class Outbox
     {
-        public void NewClientCopy(IClientEntity clientEntity)
-        {
-            Database.Instance.AddToClientCopy(clientEntity);
-        }
-
         public void UpdateOrInsert<T>(IDocument<T> document) where T: class, IEntity, new ()
         {
             Database.Instance.UpsertDocument(document);
-        }
-
-        public void JustSubmit(ISubmittedEntity submittedEntity)
-        {
-            Database.Instance.AddToSubmittedCopy(submittedEntity);
-        }
-
-        public void Submit(ISubmittedEntity submittedEntity)
-        {
-            Database.Instance.AddToSubmittedCopy(submittedEntity);
-
-            EventAggregator.Publish(new EntitySubmitted(submittedEntity.Id, submittedEntity.Name, submittedEntity.SubmittedVersion));
         }
 
         internal void Evaluate(ISubmittedEntity latestEntityChange)
@@ -48,40 +31,40 @@ namespace Models.Infrastructure
             // Update state
 
             // Trigger event
-            switch (workingCopy.Name)
-            {
-                case EntityName.Customer:
-                    EventAggregator.Publish(new CustomerEvaluationCompleteEvent(workingCopy.Id, workingCopy.SubmittedVersion, true));
-                    break;
+            //switch (workingCopy.Name)
+            //{
+            //    case EntityName.Customer:
+            //        EventAggregator.Publish(new CustomerEvaluationCompleteEvent(workingCopy.Id, workingCopy.SubmittedVersion, true));
+            //        break;
 
-                case EntityName.LegalEntity:
-                    var legalEntity = (LegalEntity)workingCopy;
-                    EventAggregator.Publish(new LegalEntityEvaluationCompleteEvent(legalEntity.CustomerId, legalEntity.Id, legalEntity.SubmittedVersion, true));
-                    break;
-            }
+            //    case EntityName.LegalEntity:
+            //        var legalEntity = (LegalEntity)workingCopy;
+            //        EventAggregator.Publish(new LegalEntityEvaluationCompleteEvent(legalEntity.CustomerId, legalEntity.Id, legalEntity.SubmittedVersion, true));
+            //        break;
+            //}
         }
 
         internal void Ready(ISubmittedEntity workingCopy)
         {
-            var readyUpdateResult = Database.Instance.MarkAsReady(workingCopy);
+            //var readyUpdateResult = Database.Instance.MarkAsReady(workingCopy);
 
-            switch (workingCopy.Name)
-            {
-                case EntityName.Customer:
-                    EventAggregator.Publish(new CustomerSynchonised(workingCopy.Id, workingCopy.SubmittedVersion));
-                    break;
-                case EntityName.LegalEntity:
-                    var legalEntity = (LegalEntity)workingCopy;
-                    //EventAggregator.Publish(new LegalEntitySynchonised(legalEntity.CustomerId, legalEntity.Id, legalEntity.SubmittedVersion));
-                    break;
-            }
+            //switch (workingCopy.Name)
+            //{
+            //    case EntityName.Customer:
+            //        EventAggregator.Publish(new CustomerSynchonised(workingCopy.Id, workingCopy.SubmittedVersion));
+            //        break;
+            //    case EntityName.LegalEntity:
+            //        var legalEntity = (LegalEntity)workingCopy;
+            //        //EventAggregator.Publish(new LegalEntitySynchonised(legalEntity.CustomerId, legalEntity.Id, legalEntity.SubmittedVersion));
+            //        break;
+            //}
         }
 
         internal void WorkingCopyfailed(ISubmittedEntity workingCopy)
         {
             Database.Instance.MarkAsReady(workingCopy);
 
-            EventAggregator.Publish(new CustomerEvalidationFailed(workingCopy.Id, workingCopy.SubmittedVersion));
+           // EventAggregator.Publish(new CustomerEvalidationFailed(workingCopy.Id, workingCopy.SubmittedVersion));
         }
 
 

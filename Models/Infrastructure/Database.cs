@@ -23,24 +23,6 @@ namespace Models.Infrastructure
             Instance.LegalEntityDocuments = new List<IDocument<LegalEntity>>();
         }
 
-        public void AddToClientCopy(IClientEntity clientEntity)
-        {
-            var name = clientEntity.Name.Replace("Client", string.Empty);
-
-            switch (name)
-            {
-                case EntityName.Customer:
-                    CustomerCollection.Add(new EntityLayout<Customer, CustomerClient> { Id = clientEntity.Id, ClientCopy = (CustomerClient)clientEntity });
-                    break;
-
-                case EntityName.LegalEntity:
-                    LegalEntityCollection.Add(new EntityLayout<LegalEntity, LegalEntityClient> { Id = clientEntity.Id, ClientCopy = (LegalEntityClient)clientEntity });
-                    break;
-            }
-
-            EventAggregator.Log("Client Entity:'{0}' with Id:'{1}' Added", name, clientEntity.Id);
-        }
-
         public IList<IDocument<IEntity>> GetLatestDraft(string entityId, string entityName)
         {
             var latestDraft = new List<IDocument<IEntity>>();
@@ -67,179 +49,146 @@ namespace Models.Infrastructure
             return latestDraft;
         }
 
-        internal void AddToSubmittedCopy(ISubmittedEntity entitytoSubmit)
-        {
-            switch (entitytoSubmit.Name)
-            {
-                case EntityName.Customer:
-                    var layout = CustomerCollection.First(customer => customer.Id.Equals(entitytoSubmit.Id));
-                    layout.SetLatestSubmittedCopy(entitytoSubmit);
-                    break;
-
-                case EntityName.LegalEntity:
-                    var legalEntityLayout = LegalEntityCollection.First(legalEntity => legalEntity.Id.Equals(entitytoSubmit.Id));
-                    legalEntityLayout.SetLatestSubmittedCopy(entitytoSubmit);
-                    break;
-            }
-
-            EventAggregator.Log("Submitted Entity:'{0}' with Id:'{1}' Added", entitytoSubmit.Name, entitytoSubmit.Id);
-        }
-
         internal ISubmittedEntity? GetLatestSubmittedEntity(string entityId, string entityName)
         {
-            ISubmittedEntity returnThis = null;
-            switch (entityName)
-            {
-                case EntityName.Customer:
-                    returnThis = CustomerCollection.FirstOrDefault(customer => customer.Id.Equals(entityId, StringComparison.Ordinal))?.LastestSubmittedCopy;
-                    break;
+            //ISubmittedEntity returnThis = null;
+            //switch (entityName)
+            //{
+            //    case EntityName.Customer:
+            //        returnThis = CustomerCollection.FirstOrDefault(customer => customer.Id.Equals(entityId, StringComparison.Ordinal))?.LastestSubmittedCopy;
+            //        break;
 
-                case EntityName.LegalEntity:
-                    returnThis = LegalEntityCollection.FirstOrDefault(legalEntity => legalEntity.Id.Equals(entityId, StringComparison.Ordinal))?.LastestSubmittedCopy;
-                    break;
-            }
+            //    case EntityName.LegalEntity:
+            //        returnThis = LegalEntityCollection.FirstOrDefault(legalEntity => legalEntity.Id.Equals(entityId, StringComparison.Ordinal))?.LastestSubmittedCopy;
+            //        break;
+            //}
 
-            if (returnThis == null)
-            {
-                var aa = "d";
-            }
+            //if (returnThis == null)
+            //{
+            //    var aa = "d";
+            //}
 
-            return returnThis;
+            //return returnThis;
+            return null;
         }
 
         internal ISubmittedEntity? GetWorkingCopy(string id, int version, string entityName)
         {
-            switch (entityName)
-            {
-                case EntityName.Customer:
-                    return CustomerCollection.FirstOrDefault(customer => customer.Id.Equals(id, StringComparison.Ordinal))?.WorkingCopy?.FirstOrDefault();
+            //switch (entityName)
+            //{
+            //    case EntityName.Customer:
+            //        return CustomerCollection.FirstOrDefault(customer => customer.Id.Equals(id, StringComparison.Ordinal))?.WorkingCopy?.FirstOrDefault();
 
-                case EntityName.LegalEntity:
-                    return LegalEntityCollection.FirstOrDefault(legalEntity => legalEntity.Id.Equals(id, StringComparison.Ordinal))?.WorkingCopy?.FirstOrDefault();
-            }
+            //    case EntityName.LegalEntity:
+            //        return LegalEntityCollection.FirstOrDefault(legalEntity => legalEntity.Id.Equals(id, StringComparison.Ordinal))?.WorkingCopy?.FirstOrDefault();
+            //}
 
             return null;
         }
 
         internal void MarkAsWorkingCopy(ISubmittedEntity latestChange)
         {
-            switch (latestChange.Name)
-            {
-                case EntityName.Customer:
-                    var layout = CustomerCollection.First(customer => customer.Id.Equals(latestChange.Id));
-                    layout.MoveFromSubmittedToWorking();
-                    break;
+            //switch (latestChange.Name)
+            //{
+            //    case EntityName.Customer:
+            //        var layout = CustomerCollection.First(customer => customer.Id.Equals(latestChange.Id));
+            //        layout.MoveFromSubmittedToWorking();
+            //        break;
 
-                case EntityName.LegalEntity:
-                    var legalEntityLayout = LegalEntityCollection.First(legalEnity => legalEnity.Id.Equals(latestChange.Id));
-                    legalEntityLayout.MoveFromSubmittedToWorking();
+            //    case EntityName.LegalEntity:
+            //        var legalEntityLayout = LegalEntityCollection.First(legalEnity => legalEnity.Id.Equals(latestChange.Id));
+            //        legalEntityLayout.MoveFromSubmittedToWorking();
 
-                    break;
-            }
+            //        break;
+            //}
         }
 
         internal bool MarkAsReady(ISubmittedEntity workingCopy)
         {
-            switch (workingCopy.Name)
-            {
-                case EntityName.Customer:
-                    var layout = CustomerCollection.First(item => item.Id.Equals(workingCopy.Id));
-                    return layout.TryMoveFromWorkingCopyToReadyCopy(workingCopy);
+            //switch (workingCopy.Name)
+            //{
+            //    case EntityName.Customer:
+            //        var layout = CustomerCollection.First(item => item.Id.Equals(workingCopy.Id));
+            //        return layout.TryMoveFromWorkingCopyToReadyCopy(workingCopy);
 
-                case EntityName.LegalEntity:
-                    var legalEntityLayout = LegalEntityCollection.First(item => item.Id.Equals(workingCopy.Id));
-                    return legalEntityLayout.TryMoveFromWorkingCopyToReadyCopy(workingCopy);
-            }
+            //    case EntityName.LegalEntity:
+            //        var legalEntityLayout = LegalEntityCollection.First(item => item.Id.Equals(workingCopy.Id));
+            //        return legalEntityLayout.TryMoveFromWorkingCopyToReadyCopy(workingCopy);
+            //}
 
             return true;
         }
 
-        internal void DiscardWorkingCopy(ISubmittedEntity workingCopy)
-        {
-            switch (workingCopy.Name)
-            {
-                case EntityName.Customer:
-                    var layout = CustomerCollection.First(item => item.Id.Equals(workingCopy.Id));
-                    layout.RemoveFromWorkingCopy(workingCopy);
-                    break;
-
-                case EntityName.LegalEntity:
-                    var legalEntityLayout = LegalEntityCollection.First(item => item.Id.Equals(workingCopy.Id));
-                    legalEntityLayout.RemoveFromWorkingCopy(workingCopy);
-                    break;
-            }
-        }
-
         internal void MoveLatestToSubmitted(string entityId, int version, string entityName)
         {
-            switch (entityName)
-            {
-                case EntityName.Customer:
-                    var customerLayout = CustomerCollection.FirstOrDefault(customer => customer.Id.Equals(entityId, StringComparison.Ordinal));
-                    customerLayout?.MovebackToSubmitted(version);
+            //switch (entityName)
+            //{
+            //    case EntityName.Customer:
+            //        var customerLayout = CustomerCollection.FirstOrDefault(customer => customer.Id.Equals(entityId, StringComparison.Ordinal));
+            //        customerLayout?.MovebackToSubmitted(version);
 
-                    break;
-                case EntityName.LegalEntity:
-                    var legalEntityLayout = LegalEntityCollection.FirstOrDefault(legalEntity => legalEntity.Id.Equals(entityId, StringComparison.Ordinal));
-                    legalEntityLayout?.MovebackToSubmitted(version);
+            //        break;
+            //    case EntityName.LegalEntity:
+            //        var legalEntityLayout = LegalEntityCollection.FirstOrDefault(legalEntity => legalEntity.Id.Equals(entityId, StringComparison.Ordinal));
+            //        legalEntityLayout?.MovebackToSubmitted(version);
 
-                    break;
-            }
+            //        break;
+            //}
         }
 
         internal void CopyReadyToSubmitted(string id, int version, string entityName)
         {
-            switch (entityName)
-            {
-                case EntityName.Customer:
-                    var customerLayout = CustomerCollection.FirstOrDefault(customer => customer.Id.Equals(id, StringComparison.Ordinal));
-                    var customer = (Customer)customerLayout?.ReadyCopy.Clone();
-                    customer.State = EntityState.Submitted; // Bit of a hack
-                    customerLayout.SetLatestSubmittedCopy(customer);
+        //    switch (entityName)
+        //    {
+        //        case EntityName.Customer:
+        //            var customerLayout = CustomerCollection.FirstOrDefault(customer => customer.Id.Equals(id, StringComparison.Ordinal));
+        //            var customer = (Customer)customerLayout?.ReadyCopy.Clone();
+        //            customer.State = EntityState.Submitted; // Bit of a hack
+        //            customerLayout.SetLatestSubmittedCopy(customer);
 
-                    break;
-                case EntityName.LegalEntity:
-                    var legalEntityLayout = LegalEntityCollection.FirstOrDefault(legalEntity => legalEntity.Id.Equals(id, StringComparison.Ordinal));
-                    var legalEntity = (LegalEntity)legalEntityLayout?.ReadyCopy.Clone();
-                    legalEntity.State = EntityState.Submitted; // Bit of a hack
-                    legalEntityLayout.SetLatestSubmittedCopy(legalEntity);
+        //            break;
+        //        case EntityName.LegalEntity:
+        //            var legalEntityLayout = LegalEntityCollection.FirstOrDefault(legalEntity => legalEntity.Id.Equals(id, StringComparison.Ordinal));
+        //            var legalEntity = (LegalEntity)legalEntityLayout?.ReadyCopy.Clone();
+        //            legalEntity.State = EntityState.Submitted; // Bit of a hack
+        //            legalEntityLayout.SetLatestSubmittedCopy(legalEntity);
 
-                    break;
-            }
+        //            break;
+        //    }
         }
 
         internal bool IsBeingEvaluated(string id, string entityName)
         {
-            switch (entityName)
-            {
-                case EntityName.Customer:
-                    var customerLayout = CustomerCollection.FirstOrDefault(customer => customer.Id.Equals(id, StringComparison.Ordinal));
+            //switch (entityName)
+            //{
+            //    case EntityName.Customer:
+            //        var customerLayout = CustomerCollection.FirstOrDefault(customer => customer.Id.Equals(id, StringComparison.Ordinal));
 
-                    return customerLayout.WorkingCopy != null && customerLayout.WorkingCopy.Count != 0;
+            //        return customerLayout.WorkingCopy != null && customerLayout.WorkingCopy.Count != 0;
 
-                case EntityName.LegalEntity:
-                    var legalEntityLayout = LegalEntityCollection.FirstOrDefault(legalEntity => legalEntity.Id.Equals(id, StringComparison.Ordinal));
+            //    case EntityName.LegalEntity:
+            //        var legalEntityLayout = LegalEntityCollection.FirstOrDefault(legalEntity => legalEntity.Id.Equals(id, StringComparison.Ordinal));
 
-                    return legalEntityLayout.WorkingCopy != null && legalEntityLayout.WorkingCopy.Count != 0;
-            }
+            //        return legalEntityLayout.WorkingCopy != null && legalEntityLayout.WorkingCopy.Count != 0;
+            //}
 
             return false;
         }
 
         internal bool HasReadyCopy(string entityId, string entityName)
         {
-            switch (entityName)
-            {
-                case EntityName.Customer:
-                    var customerLayout = CustomerCollection.FirstOrDefault(customer => customer.Id.Equals(entityId, StringComparison.Ordinal));
+            //switch (entityName)
+            //{
+            //    case EntityName.Customer:
+            //        var customerLayout = CustomerCollection.FirstOrDefault(customer => customer.Id.Equals(entityId, StringComparison.Ordinal));
 
-                    return customerLayout.ReadyCopy != null;
+            //        return customerLayout.ReadyCopy != null;
 
-                case EntityName.LegalEntity:
-                    var legalEntityLayout = LegalEntityCollection.FirstOrDefault(legalEntity => legalEntity.Id.Equals(entityId, StringComparison.Ordinal));
+            //    case EntityName.LegalEntity:
+            //        var legalEntityLayout = LegalEntityCollection.FirstOrDefault(legalEntity => legalEntity.Id.Equals(entityId, StringComparison.Ordinal));
 
-                    return legalEntityLayout.ReadyCopy != null;
-            }
+            //        return legalEntityLayout.ReadyCopy != null;
+            //}
 
             return false;
         }
@@ -352,34 +301,6 @@ namespace Models.Infrastructure
             }
 
             return true;
-        }
-
-        internal void MovebackToSubmitted(int version)
-        {
-            if (LastestSubmittedCopy != null) return; // There is already a submitted copy.
-
-            if (WorkingCopy?.Count == 0)
-            {
-                if (LastestSubmittedCopy == null)
-                {
-                    // I need to copy from ReadyCopy to LastestSubmittedCopy.
-                    LastestSubmittedCopy = ReadyCopy;
-                    LastestSubmittedCopy.State = EntityState.Submitted; // Bit of a hack
-                    return;
-                }
-            }
-
-            // This is ok for now, as we only have one working copy.
-            var copyToMove = WorkingCopy.FirstOrDefault();
-            if (copyToMove == null)
-            {
-                return;
-            }
-
-            // Submitted entity will have the latest version.
-            LastestSubmittedCopy = LastestSubmittedCopy == null ? copyToMove : LastestSubmittedCopy;
-            LastestSubmittedCopy.State = EntityState.Submitted; // Bit of a hack
-            WorkingCopy.Remove(copyToMove);
         }
     }
 }

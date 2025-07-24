@@ -12,29 +12,29 @@ namespace Models.Workflows
     {
         public void Run(IEventInfo eventInfo)
         {
-            var customerEvent = (CustomerChanged)eventInfo;
+            //var customerEvent = (CustomerChanged)eventInfo;
 
-            EventAggregator.Log("<magenta> START: CustomerEvaluationWorkflow - Customer Id:'{0}', Version:{1}", customerEvent.CustomerId, customerEvent.Version);
+            //EventAggregator.Log("<magenta> START: CustomerEvaluationWorkflow - Customer Id:'{0}', Version:{1}", customerEvent.CustomerId, customerEvent.Version);
 
-            var workingCopy = Database.Instance.CustomerCollection.First(entry => entry.Id.Equals(customerEvent.CustomerId)).WorkingCopy.First(ver => ver.SubmittedVersion == eventInfo.Version);
+            //var workingCopy = Database.Instance.CustomerCollection.First(entry => entry.Id.Equals(customerEvent.CustomerId)).WorkingCopy.First(ver => ver.SubmittedVersion == eventInfo.Version);
 
-            if (workingCopy.EmailAddress.Contains("bad", StringComparison.InvariantCultureIgnoreCase))
-            {
-                EventAggregator.Log("CustomerEvaluationWorkflow - bad email:'{0}' for Customer:'{1}'", workingCopy.EmailAddress, workingCopy.Id); Thread.Sleep(1000);
+            //if (workingCopy.EmailAddress.Contains("bad", StringComparison.InvariantCultureIgnoreCase))
+            //{
+            //    EventAggregator.Log("CustomerEvaluationWorkflow - bad email:'{0}' for Customer:'{1}'", workingCopy.EmailAddress, workingCopy.Id); Thread.Sleep(1000);
 
-                // Notify Orchestrator.
-                Orchestrator.Instance.OnNotify(Result.EvaluationFailed(workingCopy.Id, workingCopy.SubmittedVersion, workingCopy.Name));
-            } else
-            {
-                // Random delay with email
-                var secondsToWait = workingCopy.EmailAddress.Contains("wait") ? int.Parse(workingCopy.EmailAddress.Replace("wait", string.Empty)) : 1;
-                EventAggregator.Log("CustomerEvaluationWorkflow - valid email:'{0}' for Customer:'{1}'", workingCopy.EmailAddress, workingCopy.Id); Thread.Sleep(secondsToWait * 1000);
+            //    // Notify Orchestrator.
+            //    Orchestrator.Instance.OnNotify(Result.EvaluationFailed(workingCopy.Id, workingCopy.SubmittedVersion, workingCopy.Name));
+            //} else
+            //{
+            //    // Random delay with email
+            //    var secondsToWait = workingCopy.EmailAddress.Contains("wait") ? int.Parse(workingCopy.EmailAddress.Replace("wait", string.Empty)) : 1;
+            //    EventAggregator.Log("CustomerEvaluationWorkflow - valid email:'{0}' for Customer:'{1}'", workingCopy.EmailAddress, workingCopy.Id); Thread.Sleep(secondsToWait * 1000);
 
-                // Notify Orchestrator.
-                Orchestrator.Instance.OnNotify(Result.EvaluationSuccess(customerEvent.CustomerId, customerEvent.Version, workingCopy.Name));
-            }
+            //    // Notify Orchestrator.
+            //    Orchestrator.Instance.OnNotify(Result.EvaluationSuccess(customerEvent.CustomerId, customerEvent.Version, workingCopy.Name));
+            //}
 
-            EventAggregator.Log("<magenta> END: CustomerEvaluationWorkflow - Customer Id:'{0}', Version: {1}", customerEvent.CustomerId, customerEvent.Version);
+            //EventAggregator.Log("<magenta> END: CustomerEvaluationWorkflow - Customer Id:'{0}', Version: {1}", customerEvent.CustomerId, customerEvent.Version);
         }
     }
 }

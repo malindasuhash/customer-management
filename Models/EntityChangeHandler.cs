@@ -47,17 +47,18 @@ namespace Models
             // Copy the draft entity to submitted state
             foreach (var draftEntity in draftEntities)
             {
-                // Entity unchanged, therefore no need to submit
-                if (draftEntity.LastSubmittedVersion == draftEntity.DraftVersion) continue;
+                
+                //// Entity unchanged, therefore no need to submit
+                //if (draftEntity.DraftVersion == draftEntity.DraftVersion) continue;
 
-                // Take a deep copy of latest "draft" version.
-                var entityToSubmit = (ISubmittedEntity)draftEntity.Clone();
-                _stateManager.Transition(entityToSubmit);
-                EventAggregator.Log("Entity cloned & submitting, \n Draft: [{0}], \n Submitted: [{1}]", draftEntity, entityToSubmit);
+                //// Take a deep copy of latest "draft" version.
+                //var entityToSubmit = (ISubmittedEntity)draftEntity.Clone();
+                //_stateManager.Transition(entityToSubmit);
+                //EventAggregator.Log("Entity cloned & submitting, \n Draft: [{0}], \n Submitted: [{1}]", draftEntity, entityToSubmit);
 
-                draftEntity.LastSubmittedVersion = draftEntity.DraftVersion;
-                entityToSubmit.SubmittedVersion = draftEntity.LastSubmittedVersion;
-                _outbox.Submit(entityToSubmit);
+                //draftEntity.LastSubmittedVersion = draftEntity.DraftVersion;
+                //entityToSubmit.SubmittedVersion = draftEntity.LastSubmittedVersion;
+                //_outbox.Submit(entityToSubmit);
             }
         }
 
@@ -66,7 +67,7 @@ namespace Models
             var latestSubmitted = Database.Instance.GetLatestSubmittedEntity(entityId, entityName);
 
             // Move latest submitted entity to working copy state
-            _stateManager.Transition(latestSubmitted);
+           // _stateManager.Transition(latestSubmitted);
             _outbox.MoveFromSubmittedToWorking(latestSubmitted);
         }
     }

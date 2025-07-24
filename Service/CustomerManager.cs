@@ -9,7 +9,7 @@ namespace Service
 
         public Customer AddCustomer(Customer customer)
         {
-            var customerDocument = new IDocument<Customer>
+            var customerDocument = new CustomerDocument()
             {
                 Draft = customer
             };
@@ -42,7 +42,7 @@ namespace Service
 
         public LegalEntity AddLegalEntity(string customerId, LegalEntity legalEntity)
         {
-            var legalEntityDocument = new IDocument<LegalEntity>
+            var legalEntityDocument = new LegalEntityDocument
             {
                 Draft = legalEntity
             };

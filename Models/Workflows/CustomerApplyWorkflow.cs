@@ -13,18 +13,18 @@ namespace Models.Workflows
     {
         public void Run(IEventInfo eventInfo)
         {
-            var customerEvent = (CustomerEvaluationCompleteEvent)eventInfo;
+            //var customerEvent = (CustomerEvaluationCompleteEvent)eventInfo;
 
-            EventAggregator.Log("<magenta> START: CustomerApplyWorkflow - Customer Id:'{0}', Version:{1}", customerEvent.CustomerId, customerEvent.Version);
+            //EventAggregator.Log("<magenta> START: CustomerApplyWorkflow - Customer Id:'{0}', Version:{1}", customerEvent.CustomerId, customerEvent.Version);
 
-            var workingCopy = Database.Instance.CustomerCollection.First(entry => entry.Id.Equals(customerEvent.CustomerId)).WorkingCopy.First(ver => ver.SubmittedVersion == eventInfo.Version);
+            //var workingCopy = Database.Instance.CustomerCollection.First(entry => entry.Id.Equals(customerEvent.CustomerId)).WorkingCopy.First(ver => ver.SubmittedVersion == eventInfo.Version);
 
-            EventAggregator.Log("CustomerApplyWorkflow - Applying change to Identity & Authorisation system for Customer:'{0}'", workingCopy.Id); Thread.Sleep(3000);
+            //EventAggregator.Log("CustomerApplyWorkflow - Applying change to Identity & Authorisation system for Customer:'{0}'", workingCopy.Id); Thread.Sleep(3000);
 
-            // Notify Orchestrator
-            Orchestrator.Instance.OnNotify(Result.ApplySuccess(workingCopy.Id, workingCopy.SubmittedVersion, workingCopy.Name));
+            //// Notify Orchestrator
+            //Orchestrator.Instance.OnNotify(Result.ApplySuccess(workingCopy.Id, workingCopy.SubmittedVersion, workingCopy.Name));
 
-            EventAggregator.Log("<magenta> END: CustomerApplyWorkflow - Customer Id:'{0}', Version: {1}", customerEvent.CustomerId, customerEvent.Version);
+            //EventAggregator.Log("<magenta> END: CustomerApplyWorkflow - Customer Id:'{0}', Version: {1}", customerEvent.CustomerId, customerEvent.Version);
         }
     }
 }
