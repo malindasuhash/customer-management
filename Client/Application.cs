@@ -1,12 +1,6 @@
 ﻿using Models;
 using Models.Infrastructure;
 using Service;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Client
 {
@@ -78,14 +72,14 @@ namespace Client
         public void UpdateLegalEntity(int legalEntityIndex, string newLegalName)
         {
             var legalEntity = _service.GetLegalEntity(legalEntityIndex);
-            legalEntity.ClientCopy.LegalName = newLegalName;
+            ((LegalEntity)legalEntity.Draft).LegalName = newLegalName;
 
-            _service.UpdateLegalEntity(legalEntity.ClientCopy);
+            _service.UpdateLegalEntity(legalEntity);
         }
 
 
         // GET /customer/{customerId}/Legal-entity/{legalEntityId}
-        public EntityLayout<LegalEntity, LegalEntityClient> GetLegalEntity(int index) // For simplicity, using index
+        public Document<LegalEntity> GetLegalEntity(int index) // For simplicity, using index
         {
             var legalEntity = _service.GetLegalEntity(index);
 
@@ -98,13 +92,9 @@ namespace Client
             _service.SubmitForEvaluation(customer.Id);
         }
 
-      
-
         public void ShowData()
         {
             _service.ViewDatabase();
         }
-
-       
     }
 }
