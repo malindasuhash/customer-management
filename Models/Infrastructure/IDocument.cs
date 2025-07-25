@@ -51,7 +51,7 @@ namespace Models.Infrastructure
         }
     }
 
-    public class LegalEntityDocument : IDocument<LegalEntity>
+    public class LegalEntityDocument : IDocument<LegalEntity>, ICloneable
     {
         public string Id { get; set; }
         public LegalEntity Draft { get; set; } = LegalEntity.Empty;
@@ -61,6 +61,21 @@ namespace Models.Infrastructure
         public LegalEntity Approved { get; set; } = LegalEntity.Empty;
         public int ApprovedVersion { get; set; }
         public State CurrentState { get; set; } = State.New;
+
+        public object Clone()
+        {
+            return new LegalEntityDocument
+            {
+                Id = Id,
+                Draft = (LegalEntity)Draft.Clone(),
+                DraftVersion = DraftVersion,
+                Submitted = (LegalEntity)Submitted.Clone(),
+                SubmittedVersion = SubmittedVersion,
+                Approved = (LegalEntity)Approved.Clone(),
+                ApprovedVersion = ApprovedVersion,
+                CurrentState = CurrentState
+            };
+        }
     }
 
     public enum State

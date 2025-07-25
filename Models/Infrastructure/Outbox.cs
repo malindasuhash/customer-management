@@ -39,7 +39,7 @@ namespace Models.Infrastructure
 
             //    case EntityName.LegalEntity:
             //        var legalEntity = (LegalEntity)workingCopy;
-            //        EventAggregator.Publish(new LegalEntityEvaluationCompleteEvent(legalEntity.CustomerId, legalEntity.Id, legalEntity.SubmittedVersion, true));
+            //        EventAggregator.Publish(new LegalEntityEvaluationCompleteEvent(legalEntity.EntityId, legalEntity.Id, legalEntity.SubmittedVersion, true));
             //        break;
             //}
         }
@@ -55,7 +55,7 @@ namespace Models.Infrastructure
             //        break;
             //    case EntityName.LegalEntity:
             //        var legalEntity = (LegalEntity)workingCopy;
-            //        //EventAggregator.Publish(new LegalEntitySynchonised(legalEntity.CustomerId, legalEntity.Id, legalEntity.SubmittedVersion));
+            //        //EventAggregator.Publish(new LegalEntitySynchonised(legalEntity.EntityId, legalEntity.Id, legalEntity.SubmittedVersion));
             //        break;
             //}
         }

@@ -16,7 +16,7 @@ namespace Models.Workflows
             //    // This workflow is triggered after the Customer has been applied to the database
             //    var customerEvent = (CustomerSynchonised)eventInfo;
 
-            //    EventAggregator.Log("<magenta> START: CustomerPostApplyWorkflow - Customer Id:'{0}', Version:{1}", customerEvent.CustomerId, customerEvent.Version);
+            //    EventAggregator.Log("<magenta> START: CustomerPostApplyWorkflow - Customer Id:'{0}', Version:{1}", customerEvent.EntityId, customerEvent.Version);
 
             //    // Trigger Legal Entity Evaluation Workflow?
             //    // Get Legal entity for this Customer
@@ -26,13 +26,13 @@ namespace Models.Workflows
 
             //    if (anyLegalEntities)
             //    {
-            //        EventAggregator.Log("<magenta> END: CustomerPostApplyWorkflow - No linked legal entities - Customer Id:'{0}', Version:{1}", customerEvent.CustomerId, customerEvent.Version);
+            //        EventAggregator.Log("<magenta> END: CustomerPostApplyWorkflow - No linked legal entities - Customer Id:'{0}', Version:{1}", customerEvent.EntityId, customerEvent.Version);
             //        return;
             //    }
 
             //    // Get list of legal entities for this customer
             //    var legalEntities = Database.Instance.LegalEntityCollection
-            //        .Where(legalEntity => legalEntity.ClientCopy.CustomerId.Equals(customerEvent.CustomerId))
+            //        .Where(legalEntity => legalEntity.ClientCopy.EntityId.Equals(customerEvent.EntityId))
             //        .ToList();
 
             //    foreach (var legalEntity in legalEntities)
@@ -41,11 +41,11 @@ namespace Models.Workflows
             //        {
             //            Orchestrator.Instance.Touch(
             //                Result.Evaluate(legalEntity.Id, EntityName.LegalEntity),
-            //                Result.EvaluationContext(customerEvent.CustomerId, customerEvent.Version, EntityName.Customer));
+            //                Result.EvaluationContext(customerEvent.EntityId, customerEvent.Version, EntityName.Customer));
             //        });
             //    }
 
-            //    EventAggregator.Log("<magenta> END: CustomerPostApplyWorkflow - Customer Id:'{0}', Version:{1}", customerEvent.CustomerId, customerEvent.Version);
+            //    EventAggregator.Log("<magenta> END: CustomerPostApplyWorkflow - Customer Id:'{0}', Version:{1}", customerEvent.EntityId, customerEvent.Version);
             //}
         }
     }

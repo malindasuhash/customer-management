@@ -55,10 +55,34 @@ namespace Models
 
                 var changedCustomerDocumentToSubmit = (CustomerDocument)impactedCustomer.Clone();
 
+                var customerChangeEvent = new CustomerChanged(entityId, changedCustomerDocumentToSubmit);
+                
                 // Raise changed event
+                EventAggregator.Publish(customerChangeEvent);   
             }
 
             // Find out all linked entities related to Customer
+            var linkedEntities = Database.Instance.LegalEntityDocuments
+                .Where(entity => entity.Draft.CustomerId.Equals(entityId))
+                .ToList();
+
+            foreach (var entity in linkedEntities)
+            {
+                if (entity.DraftVersion != entity.SubmittedVersion)
+                {
+                    // Clone the draft entity to submitted state
+                    entity.Submitted = (LegalEntity)entity.Draft.Clone();
+                    entity.SubmittedVersion = entity.DraftVersion;
+                    var changedLegalEntityDocumentToSubmit = (LegalEntityDocument)entity.Clone();
+
+                    // Raise changed event
+                    EventAggregator.Log($"Entity {entity.Id} has been changed and is ready for submission.");
+                }
+                else
+                {
+                    EventAggregator.Log($"Entity {entity.Id} has not been changed since last submission.");
+                }
+            }
 
 
             //var draftEntities = Database.Instance.GetLatestDraft(entityId, entityName);
@@ -67,17 +91,17 @@ namespace Models
             //foreach (var draftEntity in draftEntities)
             //{
 
-                //// Entity unchanged, therefore no need to submit
-                //if (draftEntity.DraftVersion == draftEntity.DraftVersion) continue;
+            //// Entity unchanged, therefore no need to submit
+            //if (draftEntity.DraftVersion == draftEntity.DraftVersion) continue;
 
-                //// Take a deep copy of latest "draft" version.
-                //var entityToSubmit = (ISubmittedEntity)draftEntity.Clone();
-                //_stateManager.Transition(entityToSubmit);
-                //EventAggregator.Log("Entity cloned & submitting, \n Draft: [{0}], \n Submitted: [{1}]", draftEntity, entityToSubmit);
+            //// Take a deep copy of latest "draft" version.
+            //var entityToSubmit = (ISubmittedEntity)draftEntity.Clone();
+            //_stateManager.Transition(entityToSubmit);
+            //EventAggregator.Log("Entity cloned & submitting, \n Draft: [{0}], \n Submitted: [{1}]", draftEntity, entityToSubmit);
 
-                //draftEntity.LastSubmittedVersion = draftEntity.DraftVersion;
-                //entityToSubmit.SubmittedVersion = draftEntity.LastSubmittedVersion;
-                //_outbox.Submit(entityToSubmit);
+            //draftEntity.LastSubmittedVersion = draftEntity.DraftVersion;
+            //entityToSubmit.SubmittedVersion = draftEntity.LastSubmittedVersion;
+            //_outbox.Submit(entityToSubmit);
             //}
         }
 

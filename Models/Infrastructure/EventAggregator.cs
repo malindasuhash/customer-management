@@ -1,13 +1,8 @@
 ﻿using Models.Infrastructure.Events;
 using Models.Workflows;
 using Models.Workflows.Events;
-using System;
-using System.Collections.Generic;
 using System.IO.Pipes;
-using System.Linq;
 using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Models.Infrastructure
 {
@@ -32,6 +27,12 @@ namespace Models.Infrastructure
             SetWorkflowMappings();
 
         }
+
+        public static void Publish(IWorkflowEvent workflowEvent)
+        {
+            // Reevaluate Entity
+        }
+
         public static void Publish(IEventInfo eventInfo)
         {
             _eventWriter ??= new StreamWriter(_eventClient);

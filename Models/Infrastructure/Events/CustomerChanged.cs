@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace Models.Infrastructure.Events
+﻿namespace Models.Infrastructure.Events
 {
     public class CustomerChanged : IEventInfo
     {
@@ -12,17 +6,14 @@ namespace Models.Infrastructure.Events
 
         public string CustomerId { get; }
 
-        public int Version { get; }
+        public CustomerDocument Document { get; }
 
-        public CustomerChanged(string customerId, int version)
+        public CustomerChanged(string customerId, CustomerDocument document)
         {
             CustomerId = customerId;
-            Version = version;
+            Document = document;
         }
 
-        public override string ToString()
-        {
-            return string.Format("Event='{0}', CustomerId='{1}', Version='{2}'", EventName, CustomerId, Version);
-        }
+        public override string ToString() => string.Format($"Event='{EventName}', CustomerId='{CustomerId}'");
     }
 }
