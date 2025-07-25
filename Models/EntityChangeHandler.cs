@@ -1,13 +1,14 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using Models.Contract;
 using Models.Infrastructure;
 using Models.Infrastructure.Events;
-using Models.Contract;
-using System.Security.Claims;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Reflection.Metadata;
 using System.Runtime.InteropServices;
+using System.Security.Claims;
+using System.Text;
+using System.Threading.Tasks;
 
 namespace Models
 {
@@ -16,7 +17,7 @@ namespace Models
         private readonly Outbox _outbox = new();
         private readonly DocumentStateManager _stateManager = new();
 
-        public void Manage<T>(IDocument<T> document) where T : class, IEntity, new()
+        public void Manage<T>(IDocument<T> document) where T : class, IEntity, ICloneable, new()
         {
             if (document.Id is not null)
             {
@@ -50,15 +51,8 @@ namespace Models
             // Check if the entity has been changed since last submission
             if (impactedCustomer.DraftVersion != impactedCustomer.SubmittedVersion)
             {
-                impactedCustomer.Submitted = (Customer)impactedCustomer.Draft.Clone();
-                impactedCustomer.SubmittedVersion = impactedCustomer.DraftVersion;
-
-                var changedCustomerDocumentToSubmit = (CustomerDocument)impactedCustomer.Clone();
-
-                var customerChangeEvent = new CustomerChanged(entityId, changedCustomerDocumentToSubmit);
-                
-                // Raise changed event
-                EventAggregator.Publish(customerChangeEvent);   
+                EventAggregator.Log($"Customer {impactedCustomer.Id} has been changed and is ready for submission.");
+                _stateManager.Transition(impactedCustomer);
             }
 
             // Find out all linked entities related to Customer
@@ -70,39 +64,16 @@ namespace Models
             {
                 if (entity.DraftVersion != entity.SubmittedVersion)
                 {
-                    // Clone the draft entity to submitted state
-                    entity.Submitted = (LegalEntity)entity.Draft.Clone();
-                    entity.SubmittedVersion = entity.DraftVersion;
-                    var changedLegalEntityDocumentToSubmit = (LegalEntityDocument)entity.Clone();
+                    _stateManager.Transition(entity);
 
                     // Raise changed event
-                    EventAggregator.Log($"Entity {entity.Id} has been changed and is ready for submission.");
+                    EventAggregator.Log($"Legal Entity {entity.Id} has been changed and is ready for submission.");
                 }
                 else
                 {
-                    EventAggregator.Log($"Entity {entity.Id} has not been changed since last submission.");
+                    EventAggregator.Log($"Legal Entity {entity.Id} has not been changed since last submission.");
                 }
             }
-
-
-            //var draftEntities = Database.Instance.GetLatestDraft(entityId, entityName);
-
-            // Copy the draft entity to submitted state
-            //foreach (var draftEntity in draftEntities)
-            //{
-
-            //// Entity unchanged, therefore no need to submit
-            //if (draftEntity.DraftVersion == draftEntity.DraftVersion) continue;
-
-            //// Take a deep copy of latest "draft" version.
-            //var entityToSubmit = (ISubmittedEntity)draftEntity.Clone();
-            //_stateManager.Transition(entityToSubmit);
-            //EventAggregator.Log("Entity cloned & submitting, \n Draft: [{0}], \n Submitted: [{1}]", draftEntity, entityToSubmit);
-
-            //draftEntity.LastSubmittedVersion = draftEntity.DraftVersion;
-            //entityToSubmit.SubmittedVersion = draftEntity.LastSubmittedVersion;
-            //_outbox.Submit(entityToSubmit);
-            //}
         }
 
         public void MoveFromSubmittedToWorkingCopy(string entityId, string entityName, int version)

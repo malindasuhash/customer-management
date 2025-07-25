@@ -186,8 +186,10 @@ namespace Models.Infrastructure
             return false;
         }
 
-        internal void UpsertDocument<T>(IDocument<T> document) where T : class, IEntity, new()
+        internal void UpsertDocument<T>(IDocument<T> document) where T : class, IEntity, ICloneable, new()
         {
+            // Technically there is no need to update as reference is used by the client.
+            // However, in a database focused application, this would be an update operation.
             switch (document.Name)
             {
                 case EntityName.Customer:

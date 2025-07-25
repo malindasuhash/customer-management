@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace Models.Infrastructure
 {
-    public interface IDocument<T> where T : IEntity
+    public interface IDocument<T> where T : IEntity, ICloneable
     {
         public string Id { get; set; }
         public string Name => typeof(T).Name;
@@ -22,9 +22,11 @@ namespace Models.Infrastructure
         public int ApprovedVersion { get; set; }
 
         public State CurrentState { get; set; }
+
+        object Clone();
     }
 
-    public class CustomerDocument : IDocument<Customer>, ICloneable
+    public class CustomerDocument : IDocument<Customer>
     {
         public string Id { get; set; }
         public Customer Draft { get; set; } = Customer.Empty;
@@ -81,6 +83,9 @@ namespace Models.Infrastructure
     public enum State
     {
         New,
+        EvaluationStarting,
+        EvaluationStarted,
+        EvaludationCompleted,
         Draft,
         Submitted,
         Approved,
