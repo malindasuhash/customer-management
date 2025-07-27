@@ -29,7 +29,7 @@ namespace Models.Workflows
             var secondsToWait = submittedDocument.EmailAddress.Contains("wait") ? int.Parse(submittedDocument.EmailAddress.Replace("wait", string.Empty)) : 1;
             EventAggregator.Log($"CustomerEvaluationWorkflow - valid email:'{submittedDocument.EmailAddress}' for Customer:'{customerEvent.CustomerId}'"); Thread.Sleep(secondsToWait * 1000);
 
-            EventAggregator.Publish(new EvaluationCompleteEvent(customerEvent.CustomerId, EntityName.Customer));
+            EventAggregator.Publish(customerEvent.Document.EvaluationSuccess());
 
             EventAggregator.Log($"<magenta> END: CustomerEvaluationWorkflow - Customer Id:'{customerEvent.CustomerId}', Version: {1}");
         }

@@ -34,7 +34,7 @@ namespace Models.Infrastructure
             //switch (workingCopy.Name)
             //{
             //    case EntityName.Customer:
-            //        EventAggregator.Publish(new CustomerEvaluationCompleteEvent(workingCopy.Id, workingCopy.SubmittedVersion, true));
+            //        EventAggregator.Publish(new CustomerEvaluationSuccessEvent(workingCopy.Id, workingCopy.SubmittedVersion, true));
             //        break;
 
             //    case EntityName.LegalEntity:

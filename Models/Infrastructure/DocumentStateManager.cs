@@ -1,5 +1,6 @@
 ﻿using Models.Contract;
 using Models.Infrastructure.Events;
+using Models.Workflows;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -10,7 +11,14 @@ namespace Models.Infrastructure
 {
     public class DocumentStateManager
     {
-        public void Transition<T>(IDocument<T> document) where T: class, IEntity, ICloneable, new()
+        public static DocumentStateManager Instance { get; } = new DocumentStateManager();
+        
+        private DocumentStateManager()
+        {
+            
+        }
+
+        public void Transition<T>(IDocument<T> document, NextAction nextAction = NextAction.None) where T: class, IEntity, ICloneable, new()
         {
             if (document.Id == null)
             {
@@ -23,12 +31,29 @@ namespace Models.Infrastructure
                 case State.New:
                     document.Submitted = (T)document.Draft.Clone();
                     document.SubmittedVersion = document.DraftVersion;
-                    document.CurrentState = State.EvaluationStarting;
-                    // Store document in database
+                    document.CurrentState = State.Evaluating;
                     
+                    // Update document in database
+                    Database.Instance.UpsertDocument(document);
+
                     // Clone and submit
-                    var documentToSubmit = document.Clone();
-                    EventAggregator.Publish(new EntityChanged(documentToSubmit));
+                    var documentToSubmit = (IDocument<T>)document.Clone();
+                    EventAggregator.Publish(documentToSubmit.Changed());
+                    break;
+
+                case State.Evaluating:
+                    switch (nextAction)
+                    {
+                        case NextAction.AwaitingDependency:
+                            document.CurrentState = State.AwaitingDependency;
+                            
+                            // Update document in database
+                            Database.Instance.UpsertDocument(document);
+                            
+                            break;
+                    }
+                    
+
                     break;
             }
         }

@@ -4,16 +4,16 @@
     {
         public string EventName => nameof(LegalEntityChanged);
 
-        public IDocument<LegalEntity> LegalEntityDocument { get; }
+        public LegalEntityDocument Document { get; }
 
-        public LegalEntityChanged(IDocument<LegalEntity> legalEntityDocument)
+        public LegalEntityChanged(string legalEntityId, LegalEntityDocument document)
         {
-            LegalEntityDocument = legalEntityDocument;
+            Document = document;
         }
 
         public override string? ToString()
         {
-            return LegalEntityDocument is null ? "empty": LegalEntityDocument.ToString();
+            return Document is null ? "empty": Document.ToString();
         }
     }
 }

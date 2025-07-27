@@ -1,6 +1,7 @@
 ﻿using Models.Infrastructure.Events;
 using Models.Workflows;
 using Models.Workflows.Events;
+using Models.Workflows.Handlers;
 using System.IO.Pipes;
 using System.Reflection;
 
@@ -15,6 +16,7 @@ namespace Models.Infrastructure
         private static StreamWriter _logWriter;
 
         private static Dictionary<Type, Type> _typeMappings;
+        private static Dictionary<Type, Type> _workfloweventMappings;
 
         static EventAggregator()
         {
@@ -25,12 +27,20 @@ namespace Models.Infrastructure
             _eventClient.Connect();
 
             SetWorkflowMappings();
-
+            SetWorkflowEventMappings();
         }
 
         public static void Publish(IWorkflowEvent workflowEvent)
         {
-            // Reevaluate Entity
+            var eventFromWorkflow = _typeMappings.GetValueOrDefault(workflowEvent.GetType());
+            if (eventFromWorkflow == null)
+            {
+                Log($"No workflow mapping found for event type: {workflowEvent.GetType().Name}");
+                return;
+            }
+
+            var instance = Activator.CreateInstance(eventFromWorkflow);
+            instance.GetType().InvokeMember("Handle", BindingFlags.InvokeMethod, null, instance, new object[] { workflowEvent });
         }
 
         public static void Publish(IEventInfo eventInfo)
@@ -39,16 +49,16 @@ namespace Models.Infrastructure
             _eventWriter.WriteLine(eventInfo);
             _eventWriter.AutoFlush = true;
 
-            if (eventInfo is EntitySubmitted submitted)
-            {
-                // Orchestrator is a special case, it handles the event directly
-                Task.Run(() =>
-                {
-                    Orchestrator.Instance.ProcessEntity(submitted.EntityId, submitted.EntityName, submitted.Version);   
-                });
+            //if (eventInfo is EntitySubmitted submitted)
+            //{
+            //    // Orchestrator is a special case, it handles the event directly
+            //    Task.Run(() =>
+            //    {
+            //        Orchestrator.Instance.ProcessEntity(submitted.EntityId, submitted.EntityName, submitted.Version);   
+            //    });
 
-                return;
-            }
+            //    return;
+            //}
 
             // Find out whether there is a workflow mapping
             var workload = _typeMappings.GetValueOrDefault(eventInfo.GetType());
@@ -77,13 +87,21 @@ namespace Models.Infrastructure
             {
                 // Customr Events
                 {  typeof(CustomerChanged), typeof(CustomerEvaluationWorkflow) },
-                {  typeof(CustomerEvaluationCompleteEvent), typeof(CustomerApplyWorkflow) },
-                {  typeof(CustomerSynchonised), typeof(CustomerPostApplyWorkflow) },
+                {  typeof(CustomerEvaluationSuccessEvent), typeof(CustomerApplyWorkflow) },
+                {  typeof(CustomerApplied), typeof(CustomerPostApplyWorkflow) },
 
                 // Legal Entity Events
                 {  typeof(LegalEntityChanged), typeof(LegalEntityEvaluationWorkflow) },
             };
 
+        }
+
+        private static void SetWorkflowEventMappings()
+        {
+            _workfloweventMappings = new Dictionary<Type, Type>()
+            {
+                { typeof(EvaluationRequireDependency), typeof(EvaluationRequireDependencyHandler) }
+            };
         }
     }
 }

@@ -15,7 +15,6 @@ namespace Models
     public class EntityChangeHandler
     {
         private readonly Outbox _outbox = new();
-        private readonly DocumentStateManager _stateManager = new();
 
         public void Manage<T>(IDocument<T> document) where T : class, IEntity, ICloneable, new()
         {
@@ -31,7 +30,7 @@ namespace Models
             }
             else
             {
-                _stateManager.Transition(document);
+                DocumentStateManager.Instance.Transition(document);
 
                 document.Id = Guid.NewGuid().ToString();
                 document.DraftVersion = 1;
@@ -52,7 +51,7 @@ namespace Models
             if (impactedCustomer.DraftVersion != impactedCustomer.SubmittedVersion)
             {
                 EventAggregator.Log($"Customer {impactedCustomer.Id} has been changed and is ready for submission.");
-                _stateManager.Transition(impactedCustomer);
+                DocumentStateManager.Instance.Transition(impactedCustomer);
             }
 
             // Find out all linked entities related to Customer
@@ -64,7 +63,7 @@ namespace Models
             {
                 if (entity.DraftVersion != entity.SubmittedVersion)
                 {
-                    _stateManager.Transition(entity);
+                    DocumentStateManager.Instance.Transition(entity);
 
                     // Raise changed event
                     EventAggregator.Log($"Legal Entity {entity.Id} has been changed and is ready for submission.");

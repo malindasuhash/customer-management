@@ -95,7 +95,15 @@ void DisplayCustomer(IDocument<Customer> customer)
         Console.WriteLine($"Customer ID: {customer.Id}");
         Console.WriteLine($"Draft({customer.DraftVersion}): {customer.Draft}");
         Console.WriteLine($"Submitted({customer.SubmittedVersion}): {customer.Submitted}");
-        Console.WriteLine($"Approved({customer.Approved}): {customer.Approved}");
+        Console.Write($"Approved({customer.ApprovedVersion}):");
+        if (customer.Approved != null)
+        {
+            Console.WriteLine($" {customer.Approved}");
+        }
+        else
+        {
+            Console.WriteLine(" No approved customer.");
+        }
     }
     else
     {

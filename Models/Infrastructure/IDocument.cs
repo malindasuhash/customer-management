@@ -1,4 +1,6 @@
 ﻿using Models.Contract;
+using Models.Infrastructure.Events;
+using Models.Workflows.Events;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -24,6 +26,14 @@ namespace Models.Infrastructure
         public State CurrentState { get; set; }
 
         object Clone();
+
+        IEventInfo Changed();
+
+        IEventInfo EvaluationSuccess();
+
+        IEventInfo Applied();
+
+        IEventInfo Synchonised();
     }
 
     public class CustomerDocument : IDocument<Customer>
@@ -50,6 +60,26 @@ namespace Models.Infrastructure
                 ApprovedVersion = ApprovedVersion,
                 CurrentState = CurrentState
             };
+        }
+
+        public IEventInfo Changed()
+        {
+            return new CustomerChanged(Id, this);
+        }
+
+        public IEventInfo EvaluationSuccess()
+        {
+            return new CustomerEvaluationSuccessEvent(Id, this);
+        }
+
+        public IEventInfo Synchonised()
+        {
+            return new CustomerSynchonised(Id, this);
+        }
+
+        public IEventInfo Applied()
+        {
+            throw new NotImplementedException();
         }
     }
 
@@ -78,14 +108,32 @@ namespace Models.Infrastructure
                 CurrentState = CurrentState
             };
         }
+        public IEventInfo Changed()
+        {
+            return new LegalEntityChanged(Id, this);
+        }
+
+        public IEventInfo EvaluationSuccess()
+        {
+            throw new NotImplementedException();
+        }
+
+        public IEventInfo Synchonised()
+        {
+            throw new NotImplementedException();
+        }
+
+        public IEventInfo Applied()
+        {
+            throw new NotImplementedException();
+        }
     }
 
     public enum State
     {
         New,
-        EvaluationStarting,
-        EvaluationStarted,
-        EvaludationCompleted,
+        Evaluating,
+        AwaitingDependency,
         Draft,
         Submitted,
         Approved,

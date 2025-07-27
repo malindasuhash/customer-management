@@ -1,5 +1,6 @@
 ﻿using Models.Infrastructure;
 using Models.Infrastructure.Events;
+using Models.Workflows.Events;
 
 namespace Models.Workflows
 {
@@ -13,39 +14,38 @@ namespace Models.Workflows
 
             EventAggregator.Log("LegalEntityEvaluationWorkflow Instance Count: {0}", ++InstanceCount);
 
-            EventAggregator.Log($"<magenta> START: LegalEntityEvaluationWorkflow - LegalEntity Id:'{legalEntityEvent.LegalEntityDocument.Id}', CloneInfo:'{legalEntityEvent.LegalEntityDocument}'");
+            EventAggregator.Log($"<magenta> START: LegalEntityEvaluationWorkflow - LegalEntity Id:'{legalEntityEvent.Document.Id}', CloneInfo:'{legalEntityEvent.Document}'");
 
-            var workingLegalEntity = ((LegalEntity)legalEntityEvent.LegalEntityDocument.Submitted);
+            var workingLegalEntity = legalEntityEvent.Document.Submitted;
 
-            EventAggregator.Log("Processing LegalEntity Id:'{0}' with Name:'{1}', Legal name:'{2}'", legalEntityEvent.LegalEntityDocument.Id, workingLegalEntity.Name, workingLegalEntity.LegalName); Thread.Sleep(3 * 1000);
+            EventAggregator.Log("Processing LegalEntity Id:'{0}' with Name:'{1}', Legal name:'{2}'", legalEntityEvent.Document.Id, workingLegalEntity.Name, workingLegalEntity.LegalName); Thread.Sleep(3 * 1000);
 
             var customerFromDatabase = Database.Instance.CustomerDocuments.First(c => c.Id.Equals(workingLegalEntity.CustomerId));
 
-            // There is an ongoing change for the Customer, so we need to wait.
-            if (customerFromDatabase.Approved == null && customerFromDatabase.Submitted != null)
+            // There is no approved Customer yet. 
+            if (customerFromDatabase.Approved == null)
             {
                 EventAggregator.Log("Customer with Id:'{0}' not approved yet, but a change may be ongoing.", workingLegalEntity.CustomerId);
 
-                Orchestrator.Instance.OnNotify(Result.EvaluationWaitingDependency(customerFromDatabase.Id, 0, EntityName.Customer));
+                var requireDependency = new EvaluationRequireDependency(legalEntityEvent.Document.Id, EntityName.LegalEntity, customerFromDatabase.Id, EntityName.Customer);
 
-                EventAggregator.Log($"<magenta> END: LegalEntityEvaluationWorkflow - LegalEntity Id:'{legalEntityEvent.LegalEntityDocument.Id}'");
+                EventAggregator.Publish(requireDependency);
+
+                EventAggregator.Log($"<magenta> END: LegalEntityEvaluationWorkflow - LegalEntity Id:'{legalEntityEvent.Document.Id}'");
 
                 return;
             }
 
-            // Ideally we should not hit this case, but just in case.
-            if (customerFromDatabase.Approved == null) return;
-
             // At this point, we have a Customer that is Approved.
-            EventAggregator.Log($"LegalEntity Id:'{legalEntityEvent.LegalEntityDocument.Id}' Evaluation - Start");
+            EventAggregator.Log($"LegalEntity Id:'{legalEntityEvent.Document.Id}' Evaluation - Start");
             EventAggregator.Log($"--> Legal Entity System updated - {workingLegalEntity.LegalName} with Customer email '{((Customer)customerFromDatabase.Approved).EmailAddress}' <--");
             Thread.Sleep(5 * 1000);
-            EventAggregator.Log($"LegalEntity Id:'{legalEntityEvent.LegalEntityDocument.Id}' Evaluation - End");
+            EventAggregator.Log($"LegalEntity Id:'{legalEntityEvent.Document.Id}' Evaluation - End");
 
             // Notify Orchestrator.
-            Orchestrator.Instance.OnNotify(Result.EvaluationSuccessAndComplete(legalEntityEvent.LegalEntityDocument.Id, legalEntityEvent.LegalEntityDocument.SubmittedVersion, ((LegalEntity)legalEntityEvent.LegalEntityDocument.Approved).LegalName));
+            Orchestrator.Instance.OnNotify(Result.EvaluationSuccessAndComplete(legalEntityEvent.Document.Id, legalEntityEvent.Document.SubmittedVersion, (legalEntityEvent.Document.Approved).LegalName));
 
-            EventAggregator.Log($"<magenta> END: LegalEntityEvaluationWorkflow - LegalEntity Id:'{legalEntityEvent.LegalEntityDocument.Id}'");
+            EventAggregator.Log($"<magenta> END: LegalEntityEvaluationWorkflow - LegalEntity Id:'{legalEntityEvent.Document.Id}'");
         }
     }
 }

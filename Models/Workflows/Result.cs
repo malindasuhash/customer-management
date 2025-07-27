@@ -53,7 +53,7 @@ namespace Models.Workflows
         Apply
     }
 
-    internal enum NextAction
+    public enum NextAction
     {
         None,
         Apply,
