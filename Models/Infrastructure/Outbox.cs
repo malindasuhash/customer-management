@@ -51,7 +51,7 @@ namespace Models.Infrastructure
             //switch (workingCopy.Name)
             //{
             //    case EntityName.Customer:
-            //        EventAggregator.Publish(new CustomerSynchonised(workingCopy.Id, workingCopy.SubmittedVersion));
+            //        EventAggregator.Publish(new CustomerSynchonisedEvent(workingCopy.Id, workingCopy.SubmittedVersion));
             //        break;
             //    case EntityName.LegalEntity:
             //        var legalEntity = (LegalEntity)workingCopy;

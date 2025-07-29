@@ -18,7 +18,7 @@ namespace Models.Workflows
             {
                 EventAggregator.Log($"CustomerEvaluationWorkflow - bad email:'{submittedDocument.EmailAddress}' for Customer:'{customerEvent.CustomerId}'"); Thread.Sleep(1000);
 
-                EventAggregator.Publish(new EvaluationFailedEvent(customerEvent.CustomerId, EntityName.Customer, $"Email '{submittedDocument.EmailAddress}' is invalid, please correct and resubmit."));
+                // EventAggregator.Publish(new EvaluationFailedEvent(customerEvent.CustomerId, EntityName.Customer, $"Email '{submittedDocument.EmailAddress}' is invalid, please correct and resubmit."));
 
                 EventAggregator.Log($"<magenta> END: CustomerEvaluationWorkflow - Customer Id:'{customerEvent.CustomerId}'");
 

@@ -3,15 +3,15 @@ using Models.Infrastructure.Events;
 
 namespace Models.Workflows.Events
 {
-    public class CustomerApplied : IEventInfo
+    public class CustomerAppliedEvent : IEventInfo
     {
-        public string EventName => nameof(CustomerApplied);
+        public string EventName => nameof(CustomerAppliedEvent);
 
         public string CustomerId { get; }
 
         public CustomerDocument Document { get; }
 
-        public CustomerApplied(string customerId, CustomerDocument document)
+        public CustomerAppliedEvent(string customerId, CustomerDocument document)
         {
             CustomerId = customerId;
             Document = document;

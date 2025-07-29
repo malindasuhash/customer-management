@@ -8,7 +8,7 @@ namespace Models
         public string EmailAddress { get; set; }
         public string Name => EntityName.Customer;
 
-        public override string ToString() => string.Format($"Name:'{Name}', EmailAddress: '{EmailAddress}'");
+        public override string ToString() => string.Format($"EmailAddress: '{EmailAddress}'");
 
         public Customer CloneCustomer()
         {

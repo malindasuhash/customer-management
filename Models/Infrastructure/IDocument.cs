@@ -74,12 +74,12 @@ namespace Models.Infrastructure
 
         public IEventInfo Synchonised()
         {
-            return new CustomerSynchonised(Id, this);
+            return new CustomerSynchonisedEvent(Id, this);
         }
 
         public IEventInfo Applied()
         {
-            throw new NotImplementedException();
+            return new CustomerAppliedEvent(Id, this);
         }
     }
 
@@ -131,6 +131,7 @@ namespace Models.Infrastructure
 
     public enum State
     {
+        None,
         New,
         Evaluating,
         AwaitingDependency,

@@ -18,7 +18,7 @@ namespace Models.Infrastructure
             
         }
 
-        public void Transition<T>(IDocument<T> document, NextAction nextAction = NextAction.None) where T: class, IEntity, ICloneable, new()
+        public void Transition<T>(IDocument<T> document, State requestedTransition = State.None) where T: class, IEntity, ICloneable, new()
         {
             if (document.Id == null)
             {
@@ -42,10 +42,10 @@ namespace Models.Infrastructure
                     break;
 
                 case State.Evaluating:
-                    switch (nextAction)
+                    switch (requestedTransition)
                     {
-                        case NextAction.AwaitingDependency:
-                            document.CurrentState = State.AwaitingDependency;
+                        case State.AwaitingDependency:
+                            document.CurrentState = requestedTransition;
                             
                             // Update document in database
                             Database.Instance.UpsertDocument(document);

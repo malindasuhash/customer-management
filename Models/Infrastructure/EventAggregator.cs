@@ -30,35 +30,11 @@ namespace Models.Infrastructure
             SetWorkflowEventMappings();
         }
 
-        public static void Publish(IWorkflowEvent workflowEvent)
-        {
-            var eventFromWorkflow = _typeMappings.GetValueOrDefault(workflowEvent.GetType());
-            if (eventFromWorkflow == null)
-            {
-                Log($"No workflow mapping found for event type: {workflowEvent.GetType().Name}");
-                return;
-            }
-
-            var instance = Activator.CreateInstance(eventFromWorkflow);
-            instance.GetType().InvokeMember("Handle", BindingFlags.InvokeMethod, null, instance, new object[] { workflowEvent });
-        }
-
         public static void Publish(IEventInfo eventInfo)
         {
             _eventWriter ??= new StreamWriter(_eventClient);
             _eventWriter.WriteLine(eventInfo);
             _eventWriter.AutoFlush = true;
-
-            //if (eventInfo is EntitySubmitted submitted)
-            //{
-            //    // Orchestrator is a special case, it handles the event directly
-            //    Task.Run(() =>
-            //    {
-            //        Orchestrator.Instance.ProcessEntity(submitted.EntityId, submitted.EntityName, submitted.Version);   
-            //    });
-
-            //    return;
-            //}
 
             // Find out whether there is a workflow mapping
             var workload = _typeMappings.GetValueOrDefault(eventInfo.GetType());
@@ -72,6 +48,17 @@ namespace Models.Infrastructure
                     instance.GetType().InvokeMember("Run", BindingFlags.InvokeMethod, null, instance, new object[] { eventInfo });
                 });
             }
+
+            // This is where the State Machine should run.
+            var eventFromWorkflow = _workfloweventMappings.GetValueOrDefault(eventInfo.GetType());
+            if (eventFromWorkflow == null)
+            {
+                Log($"No workflow mapping found for event type: {eventInfo.GetType().Name}");
+                return;
+            }
+
+            var instance = Activator.CreateInstance(eventFromWorkflow);
+            instance.GetType().InvokeMember("Handle", BindingFlags.InvokeMethod, null, instance, new object[] { eventInfo });
         }
 
         public static void Log(string message, params object[] values)
@@ -85,10 +72,10 @@ namespace Models.Infrastructure
         {
             _typeMappings = new Dictionary<Type, Type>()
             {
-                // Customr Events
+                // Customer Events
                 {  typeof(CustomerChanged), typeof(CustomerEvaluationWorkflow) },
                 {  typeof(CustomerEvaluationSuccessEvent), typeof(CustomerApplyWorkflow) },
-                {  typeof(CustomerApplied), typeof(CustomerPostApplyWorkflow) },
+                {  typeof(CustomerAppliedEvent), typeof(CustomerPostApplyWorkflow) },
 
                 // Legal Entity Events
                 {  typeof(LegalEntityChanged), typeof(LegalEntityEvaluationWorkflow) },
@@ -100,7 +87,8 @@ namespace Models.Infrastructure
         {
             _workfloweventMappings = new Dictionary<Type, Type>()
             {
-                { typeof(EvaluationRequireDependency), typeof(EvaluationRequireDependencyHandler) }
+                { typeof(EvaluationRequireDependency), typeof(EvaluationRequireDependencyHandler) },
+                { typeof(CustomerSynchonisedEvent), typeof(SynchonisedEventHandler) },
             };
         }
     }

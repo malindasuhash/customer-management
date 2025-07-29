@@ -1,11 +1,6 @@
 ﻿using Models.Infrastructure;
 using Models.Infrastructure.Events;
 using Models.Workflows.Events;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Models.Workflows
 {
@@ -14,9 +9,12 @@ namespace Models.Workflows
         public void Run(IEventInfo eventInfo)
         {
             // This workflow is triggered after the Customer has been applied to the database
-            var customerEvent = (CustomerSynchonised)eventInfo;
+            var customerEvent = (CustomerAppliedEvent)eventInfo;
 
             EventAggregator.Log($"<magenta> START: CustomerPostApplyWorkflow - Customer Id:'{customerEvent.CustomerId}', Version:{customerEvent.Document.SubmittedVersion}");
+
+            EventAggregator.Log($"Executing - Post-apply processing for Customer:'{customerEvent.CustomerId}'");
+            Thread.Sleep(3 * 1000); // Simulate some processing time
 
             EventAggregator.Publish(customerEvent.Document.Synchonised());
 

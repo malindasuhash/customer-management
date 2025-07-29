@@ -1,6 +1,8 @@
-﻿namespace Models.Workflows.Events
+﻿using Models.Infrastructure.Events;
+
+namespace Models.Workflows.Events
 {
-    public class EvaluationRequireDependency : IWorkflowEvent
+    public class EvaluationRequireDependency : IEventInfo
     {
         public string EventName => nameof(EvaluationRequireDependency);
         public string EntityId { get; }
